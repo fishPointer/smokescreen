@@ -102,19 +102,27 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // wider smoothsteps feather every edge so colors bleed gently instead of
   // breaking into tight filaments.
 
+  // Density -> opacity relation. Each layer's alpha against the black is its
+  // density raised to a power: thin/wispy regions fall off steeply toward
+  // transparent (black shows through), only DENSE cores approach opaque. This
+  // is what makes it read as translucent smoke over a dominant black instead
+  // of flat color painted on top. Separate from brightness (dim/ceiling).
+  const float DENSITY_GAMMA = 2.6;   // higher = thin areas vanish faster   [knob]
+  const float MAX_OPACITY   = 0.85;  // densest cores still let some black through [knob]
+
   // Cool layer — cyan at peaks, deep blue at base, green filaments
   float s1 = fbm(vec3(wuv * 0.85 + vec2(3.0, 7.0), t * 0.2 + 40.0));
   float vis1 = smoothstep(-0.10, 0.45, s1);
   vec3 c1 = mix(DKBLUE, CYAN, smoothstep(0.00, 0.85, s1));
   c1 = mix(c1, GREEN, smoothstep(0.20, 0.70, s1) * 0.55);
-  col = mix(col, c1, vis1);
+  col = mix(col, c1, pow(vis1, DENSITY_GAMMA) * MAX_OPACITY);
 
   // Warm layer — magenta/pink at peaks, purple at base
   float s2 = fbm(vec3(wuv * 1.05, t * 0.3));
   float vis2 = smoothstep(-0.10, 0.45, s2);
   vec3 c2 = mix(PURPLE, MAGENTA, smoothstep(0.05, 0.80, s2));
   c2 = mix(c2, PINK, smoothstep(0.35, 0.95, s2));
-  col = mix(col, c2, vis2);
+  col = mix(col, c2, pow(vis2, DENSITY_GAMMA) * MAX_OPACITY);
 
   // --- readability tuning -------------------------------------------------
   // Terminal text is light; the brightest cyan/pink/green peaks wash it out.
