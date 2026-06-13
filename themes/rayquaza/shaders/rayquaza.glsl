@@ -89,13 +89,17 @@ float stars(vec2 g, float density, float tw) {
 // Deep blue -> green within each band, then fades entirely to black. No warm /
 // orange-red segment; black gaps sit between the cool bands.
 vec3 skyPal(float t) {
-    float u = fract(t);
-    // colour band occupies a window, fading in AND out on both edges, with a
-    // large black gap filling the rest of the cycle.  [knobs: window edges]
-    vec3 hue = mix(vec3(0.04, 0.09, 0.18), vec3(0.05, 0.15, 0.10),
-                   smoothstep(0.0, 0.35, u));          // blue -> green across the band
-    float presence = smoothstep(0.0, 0.08, u) * (1.0 - smoothstep(0.25, 0.35, u));
-    return hue * presence;
+    // one cycle split into equal thirds: blue -> green -> black -> (blue),
+    // with smooth eased transitions between each.
+    vec3 BLUE  = vec3(0.04, 0.09, 0.18);
+    vec3 GREEN = vec3(0.05, 0.15, 0.10);
+    vec3 BLK   = vec3(0.0);
+    float s = fract(t) * 3.0;
+    float k = floor(s);
+    float f = smoothstep(0.0, 1.0, fract(s));
+    vec3 cA = BLUE;  cA = mix(cA, GREEN, step(0.5, k)); cA = mix(cA, BLK,  step(1.5, k));
+    vec3 cB = GREEN; cB = mix(cB, BLK,   step(0.5, k)); cB = mix(cB, BLUE, step(1.5, k));
+    return mix(cA, cB, f);
 }
 
 // --- rayquaza palette (deep ozone greens + a whisper of ring-gold) ----------
@@ -127,9 +131,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // --- atmospheric sky: a faint vertical gradient whose colours slowly migrate
   // upward (the sky evolving over time), fading to black space toward the top ---
   float st = mt * 0.010;                        // slow sky evolution (x SPEED)  [knob]
-  float band = suv.y * 1.4 - st;                // colour-band frequency  [knob]
-  float atmos = smoothstep(1.30, -0.10, suv.y); // gentle tint spanning the full height
-  vec3 col = skyPal(band) * atmos * 0.22;       // barely-there atmospheric tint over black  [knob]
+  // one full cycle spans 200% of screen height (freq 0.5), split into equal
+  // thirds blue / green / black, scrolling smoothly upward.  [knob: freq]
+  float band = suv.y * 0.5 - st;
+  vec3 col = skyPal(band) * 0.22;               // barely-there sky bands over black  [knob]
 
   // Back curtain — broad, deep-green haze, the body in shadow.
   float s1 = fbm(vec3(wuv * 1.2 + vec2(0.0, 5.0), t * 0.6));
@@ -144,7 +149,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float s2 = fbm(vec3(wuv * 1.9 + vec2(4.0, 0.0), t * 0.9 + 20.0));
   float vis2 = smoothstep(0.28, 0.70, s2);
   vec3 c2 = mix(EMERALD, JADE, smoothstep(0.45, 0.85, s2));
-  c2 = mix(c2, GOLD, smoothstep(0.60, 0.88, s2) * 0.55);   // ring-gold, more present  [knob]
   const float FRONT_GAMMA   = 2.4;
   const float FRONT_OPACITY = 0.17;
   col = mix(col, c2, pow(vis2, FRONT_GAMMA) * FRONT_OPACITY);
@@ -160,6 +164,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
   float ceiling = 0.13;                              // brightness cap [knob]
   col *= ceiling / max(lum, ceiling);
+
+  // --- ring-gold glints: warm highlights at the CREST of the front ribbon
+  // (Rayquaza's ring markings catching light). Added after the ceiling, like the
+  // stars, so they actually read instead of being capped away.  [knob]
+  float gold = smoothstep(0.72, 0.93, s2) * pow(vis2, 1.5);
+  col += GOLD * gold * 0.60;
 
   // --- stars: sparse, gentle, added AFTER the ceiling so they stay crisp;
   // weighted toward the upper "space" region, fewer near the horizon glow ---
