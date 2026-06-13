@@ -52,6 +52,20 @@ saturation, dim, luminance ceiling, text-only bloom). Designed for long,
 comfortable sessions — mostly black, low peaks, slow drift, nothing that flashes.
 Files: `rayquaza.glsl`, `crt-bloom.glsl`.
 
+### `jirachi`
+The Wish Pokémon (Psychic/Steel) — the Millennium star from space that sleeps a
+thousand years and wakes only to grant wishes. Read as **calm dreaming sleep,
+punctuated by a granted wish**: a slow psychic **nebula** (deep indigo → teal,
+the colours of its wish-tags) drifts over a near-black cosmic void, dusted with a
+sparse twinkling **gold/white starfield**. Riding the brightest filaments are
+tiny **gold metallic flecks** — the Steel-type sheen / economic gold. Then,
+rarely, the signature move: the **Millennium Comet** streaks across with a sharp
+**5-point star head** (Jirachi itself) and a gold tail — a single granted wish,
+crisp as a machinist's cut, not a strobe. Built on Noah's architecture +
+radiantmatter-readable's ergonomic tuning; calm enough for long sessions, with
+one rare delight. Made for Brennan (0xjirachi), the economic wishmaster.
+Files: `jirachi.glsl`, `crt-bloom.glsl`.
+
 ### `radiantmatter-default`
 A faithful port of the [radiantmatter.io](https://radiantmatter.io) background
 gradient (by Noah): a Three.js WebGL mesh gradient — Ashima 3D simplex noise, a
@@ -130,6 +144,7 @@ ln -sf "$R/radiantmatter-readable/shaders/radiantmatter-readable.glsl" "$S/radia
 ln -sf "$R/radiantmatter-readable/shaders/crt-bloom.glsl"              "$S/crt-bloom.glsl"
 ln -sf "$R/default/shaders/gradient-cloud.glsl"                        "$S/gradient-cloud.glsl"
 ln -sf "$R/radiantmatter-default/shaders/radiantmatter.glsl"          "$S/radiantmatter.glsl"
+ln -sf "$R/jirachi/shaders/jirachi.glsl"                              "$S/jirachi.glsl"
 ```
 
 Note: `crt-bloom.glsl` is duplicated per-theme so each theme stays a
