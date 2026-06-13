@@ -79,7 +79,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // "live" at once, so the TOTAL phase density (how much is active anywhere on
     // screen) stays low even though every pocket carries its own clock. This is
     // the master knob for overall activity.  [knob]
-    float active = smoothstep(0.52, 0.80, fbm(p * 0.45 + vec2(t * 0.08, -t * 0.05)));
+    float hotzone = smoothstep(0.52, 0.80, fbm(p * 0.45 + vec2(t * 0.08, -t * 0.05)));
 
     // Per-region clock, STRONGLY decorrelated in space so discharges are
     // isolated local events (no screen-wide synchronized pulse). Slow rate
@@ -96,12 +96,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // acute travelling spike keeps each discharge directional along the streak
     float bolt = pow(0.5 + 0.5 * sin(vf * 13.0 - iTime * 5.0), 6.0);
 
-    float life = pocket * active * arc;
+    float life = pocket * hotzone * arc;
 
     // Glitter: fast high-frequency sparks riding the filaments.
     float spark = noise(op * 40.0 + vec2(iTime * 4.0, iTime * 3.0));
     spark = pow(smoothstep(0.86, 1.0, spark), 2.0);
-    float glitter = spark * vein * pocket * active;
+    float glitter = spark * vein * pocket * hotzone;
 
     const vec3 AMBER = vec3(1.00, 0.50, 0.10);
     const vec3 GOLD  = vec3(1.00, 0.88, 0.58);
