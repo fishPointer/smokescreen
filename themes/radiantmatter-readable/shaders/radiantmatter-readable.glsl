@@ -120,6 +120,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   col = mix(col, c2, pow(vis2, DENSITY_GAMMA) * MAX_OPACITY);
 
   // --- readability tuning -------------------------------------------------
+  // Global saturation (chroma): mix toward luminance to mute the hues without
+  // changing brightness. 1.0 = full color, 0.0 = grayscale.  [knob]
+  const float SATURATION = 0.60;
+  float gray = dot(col, vec3(0.299, 0.587, 0.114));
+  col = mix(vec3(gray), col, SATURATION);
+
   // Terminal text is light; the brightest cyan/pink/green peaks wash it out.
   // Dim the field overall, then apply a luminance ceiling that pulls down ONLY
   // the brightest peaks (hue preserved) while leaving the dark strata intact.
