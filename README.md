@@ -34,13 +34,18 @@ shimmer, recoloured cyan/magenta) glowing across it. CRT/VHS scanlines on top.
 Files: `pool-party.glsl`, `crt-bloom.glsl`.
 
 ### `deoxys`
-The DNA Pokémon. A rotating crystalline **double-helix** down the center (two
-depth-shaded strands with beads + rungs) around a pulsing psychic **core** with
-**radial** energy spikes, all washed in an iridescent IQ cosine palette over a
-dark psychic void. The signature move: **forme-morphing** — it cycles Deoxys'
-four formes (Normal / Attack / Defense / Speed), each a distinct geometry + hue,
-firing a **chromatic-aberration "mutation" glitch** at every forme change. CRT
-on top. Files: `deoxys.glsl`, `crt-bloom.glsl`.
+The DNA Pokémon as a **deep-space scene**: a black void dusted with a
+multi-coloured twinkling starfield over a slow psychic nebula (jirachi's
+domain-warped cloud, recoloured to Deoxys violet/teal). Its signature move is a
+rare **DNA / PCB differential-pair particle** — on a random 30–60s cadence a tiny
+ephemeral particle streaks across in a random direction, drawing a pair of flat,
+fixed-width solid ribbons (orange + blue) that snake like a PCB differential pair
+and weave around one another like a double helix, with an aggressively tapering
+exponential tail. Around its core a **gravitational lens** bends the field and
+text; behind it trails a **PROJECT-style glitch wake** — intense multichannel
+chromatic aberration, digital block-tearing, neon RGB ghosts, and glitch
+scanlines. CRT on top. (A 3D raymarched spinning core-crystal is kept disabled in
+an `#if 0` block for later.) Files: `deoxys.glsl`, `crt-bloom.glsl`.
 
 ### `rayquaza`
 The ozone-layer sky serpent as **calm, not spectacle**: a slow emerald aurora
