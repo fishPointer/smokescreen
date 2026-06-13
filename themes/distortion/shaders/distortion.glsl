@@ -72,10 +72,17 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 op2 = mat2(1.0, 0.0, -0.7, 1.0) * p; op2 *= vec2(0.55, 2.1);
     float vf1 = fbm(op1 * 2.2 + 1.4 * r + vec2(0.0, t * 0.4));
     float vf2 = fbm(op2 * 2.2 + 1.4 * r + vec2(9.1, 2.7 - t * 0.4));
-    float rb1 = 1.0 - abs(2.0 * vf1 - 1.0);
-    float rb2 = 1.0 - abs(2.0 * vf2 - 1.0);
-    float vein = max(pow(rb1, 14.0), pow(rb2, 14.0)); // hairline cores (~1D)  [knob: sharpness]
-    float halo = max(pow(rb1, 9.0),  pow(rb2, 9.0));  // razor-thin glow only
+    // Thin ISOLINES at the vf = 0.5 level set, width normalised by the local
+    // gradient (fwidth) so they stay ~constant pixel width => true hairlines:
+    // bright lines on black, not a bright field with dark contours.
+    float d1 = abs(vf1 - 0.5);
+    float d2 = abs(vf2 - 0.5);
+    float w1 = max(fwidth(vf1), 1e-3);
+    float w2 = max(fwidth(vf2), 1e-3);
+    float vein = max(1.0 - smoothstep(0.0, w1 * 1.5, d1),
+                     1.0 - smoothstep(0.0, w2 * 1.5, d2));   // ~hairline cores  [knob: width mult]
+    float halo = max(1.0 - smoothstep(0.0, w1 * 6.0, d1),
+                     1.0 - smoothstep(0.0, w2 * 6.0, d2));   // soft glow band hugging the line
 
     // Sparse hosting.  [knob]
     float pocket = smoothstep(0.45, 0.82, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
