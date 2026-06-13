@@ -72,14 +72,26 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float vein = pow(ridgeBand, 9.0);                // sharp taut filaments
     float halo = pow(ridgeBand, 4.0);                // tighter glow (less dispersion)
 
-    // Sparse: veins only host in some low-frequency pockets.  [knob]
-    float pocket = smoothstep(0.58, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
+    // Sparse hosting — widened (lower threshold) so discharges appear in MORE
+    // places at once.  [knob]
+    float pocket = smoothstep(0.45, 0.85, fbm(p * 1.0 + vec2(t * 0.06, -t * 0.06)));
 
-    // Discharge: a FAST, sharp travelling flash (high power => mostly dark with
-    // brief acute spikes racing along the streak), plus a snappy on/off gate.
-    float flash = pow(0.5 + 0.5 * sin(vf * 13.0 - iTime * 4.2), 8.0);   // [knob: speed/sharpness]
-    float gate  = smoothstep(0.50, 0.72, fbm(p * 1.3 + vec2(-iTime * 0.30, iTime * 0.24)));
-    float life  = pocket * flash * gate;
+    // Independent per-region clock: each area charges & fires on its own phase,
+    // staggered by a slow spatial field, so multiple arcs occur at once.
+    // Raise the rate (0.75) for more frequent discharges.  [knob]
+    float region = fbm(p * 0.6 + 31.7);
+    float phase  = fract(iTime * 0.75 + region * 4.0);
+
+    // AR envelope of an electric arc: a slow wind-up (charging corona) that
+    // builds across the cycle, then a sharp SNAP at the crest, then dark.
+    float windup = smoothstep(0.15, 0.92, phase) * 0.35;   // [knob: charge glow]
+    float snap   = pow(smoothstep(0.86, 1.0, phase), 3.0); // [knob: snap sharpness]
+    float arc    = windup + snap;
+
+    // acute travelling spike keeps each discharge directional along the streak
+    float bolt = pow(0.5 + 0.5 * sin(vf * 13.0 - iTime * 5.0), 6.0);
+
+    float life = pocket * arc;
 
     // Glitter: fast high-frequency sparks riding the filaments.
     float spark = noise(op * 40.0 + vec2(iTime * 4.0, iTime * 3.0));
@@ -89,9 +101,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     const vec3 AMBER = vec3(1.00, 0.50, 0.10);
     const vec3 GOLD  = vec3(1.00, 0.88, 0.58);
 
-    col += halo  * life    * AMBER * 0.40;   // tight amber haze
-    col += vein  * life    * AMBER * 2.20;   // molten filament cores (brief => brighter)
-    col += glitter         * GOLD  * 2.60;   // hot gold sparkle
+    col += halo * life                 * AMBER * 0.40;  // charging corona / haze
+    col += vein * life                 * AMBER * 2.20;  // molten filament cores
+    col += vein * pocket * snap * bolt * GOLD  * 1.40;  // the acute crack at the snap
+    col += glitter                     * GOLD  * 2.60;  // hot gold sparkle
 
     // keep the floor truly dark (crush the lowest values toward black)
     col = pow(col, vec3(1.20));
