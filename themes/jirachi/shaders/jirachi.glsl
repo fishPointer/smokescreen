@@ -145,6 +145,18 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   const float FRONT_OPACITY = 0.22; // [knob]
   col = mix(col, c2, pow(vis2, FRONT_GAMMA) * FRONT_OPACITY);
 
+  // Gold ribbons — Jirachi's pale-gold streamer/cape tails woven through the gas.
+  // ANISOTROPIC (y compressed) so the gold flows as ribbons/curtains rather than
+  // blobs — the warm counterpart to the teal headpieces.  [knobs]
+  vec2 rc = ac; rc.y *= 0.45;                 // compress y -> ribbon curtains
+  vec2 ruv = rc + r * 0.30;                    // share a touch of the cloud's warp
+  float s3 = fbm(vec3(ruv * 1.6 + vec2(9.0, 2.0), t * 0.7 + 40.0));
+  float vis3 = smoothstep(0.30, 0.74, s3);
+  const vec3  RIBBON      = vec3(0.92, 0.74, 0.32);  // soft Jirachi gold (gas, not metal)
+  const float RIB_GAMMA   = 1.9;  // [knob]
+  const float RIB_OPACITY = 0.22; // [knob] presence of the gold ribbons in the cloud
+  col = mix(col, RIBBON, pow(vis3, RIB_GAMMA) * RIB_OPACITY);
+
   // --- ergonomic tuning (mirrors radiantmatter-readable) ------------------
   const float SATURATION = 0.85;    // [knob] keep psychic blues vivid, not garish
   float gray = dot(col, vec3(0.299, 0.587, 0.114));
@@ -162,6 +174,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float fleckMask = smoothstep(0.58, 0.86, fleckN) * pow(vis2, 1.5);
   float fleckTwk = 0.5 + 0.5 * sin(mt * 2.3 + fleckN * 18.0);
   col += GOLD * fleckMask * fleckTwk * 0.45;
+
+  // Gold-ribbon crest: let the brightest ribbon cores catch light after the
+  // ceiling so the streamers stay legibly gold instead of being crushed.  [knob]
+  float ribCrest = smoothstep(0.68, 0.92, s3) * pow(vis3, 1.5);
+  col += RIBBON * ribCrest * 0.32;
 
   // --- starfield: sparse gold/white cosmic dust, AFTER the ceiling so crisp.
   vec2 sg = vec2(suv.x * aspect, suv.y);
