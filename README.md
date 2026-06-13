@@ -1,78 +1,73 @@
 # smokescreen
 
-Animated background shaders for [Ghostty](https://ghostty.org) — a flowing,
-chthonic color cloud that diffuses behind your terminal text, with optional CRT
-scanlines and bloom layered on top.
+Animated background shaders for [Ghostty](https://ghostty.org), bundled as
+**themes**. Each theme is a flowing, full-panel color field rendered *behind*
+your terminal text — the terminal arrives to the shader as a texture and its
+alpha is used as a text mask, so the field fills the background while your glyphs
+stay crisp on top.
 
-The headline effect is **`gradient-cloud`**: a domain-warped fBm mesh-gradient
-(think Stripe-banner gradients, but dark and alive) rendered *behind* your text.
-The terminal arrives to the shader as a texture, and its alpha is used as a text
-mask — so the cloud fills the background while your glyphs stay crisp on top.
+## Themes
 
-Ships with a deep "chthonic" palette out of the box: obsidian indigo with
-oxblood, plum, and verdigris strata, and rare molten-ember veins rising from the
-brightest filaments.
+Each theme is a self-contained bundle under `themes/<name>/`: a `ghostty.conf`
+snippet plus its `shaders/`.
 
-## Shaders
+### `default`
+A "chthonic diffusion" — a domain-warped fBm mesh-gradient cloud in deep
+obsidian, oxblood, plum, and verdigris, with rare molten-ember veins rising from
+the brightest filaments. CRT scanlines + soft bloom layer on top.
+Files: `gradient-cloud.glsl`, `crt-bloom.glsl`.
 
-| File | Effect |
-|------|--------|
-| `shaders/gradient-cloud.glsl` | Animated fBm mesh-gradient color cloud, composited behind text via the terminal alpha mask. The star of the show. |
-| `shaders/crt-bloom.glsl` | CRT scanlines + soft text bloom + vignette. Layers on top of anything before it. |
+### `radiantmatter`
+A faithful port of the [radiantmatter.io](https://radiantmatter.io) background
+gradient (by Noah): a Three.js WebGL mesh gradient — Ashima 3D simplex noise, a
+2-octave fBm, a two-iteration domain warp, and two color layers (cool
+blue→cyan→green, warm purple→magenta→pink) over near-black. Brand palette lifted
+from the site's CSS variables. Adapted to composite behind terminal text.
+Files: `radiantmatter.glsl`.
 
-Both are standard [Shadertoy](https://www.shadertoy.com)-style GLSL
-(`void mainImage(out vec4 fragColor, in vec2 fragCoord)`), driven by Ghostty's
-`iChannel0` (the terminal), `iResolution`, and `iTime` uniforms.
+## Install a theme
 
-## Install
-
-Copy the shaders into Ghostty's config directory:
+Copy the theme's shaders into Ghostty's shader directory, then point your config
+at it:
 
 ```sh
+THEME=radiantmatter            # or: default
 mkdir -p ~/.config/ghostty/shaders
-cp shaders/*.glsl ~/.config/ghostty/shaders/
+cp themes/$THEME/shaders/*.glsl ~/.config/ghostty/shaders/
 ```
 
-Then add to `~/.config/ghostty/config`:
+Then add the theme's `ghostty.conf` lines to `~/.config/ghostty/config`. For
+`radiantmatter`:
 
 ```ini
-# Low opacity so the animated cloud shows through; blur frosts the desktop
-# behind the panel. Set opacity to 0.0 for the cloud to fully replace the
-# background (the shader's alpha mask keeps text readable).
 background-opacity = 0.0
 background-blur = 24
-
-# Order matters: the cloud runs first (paints behind text), CRT layers over it.
-custom-shader = shaders/gradient-cloud.glsl
-custom-shader = shaders/crt-bloom.glsl
+custom-shader = shaders/radiantmatter.glsl
 custom-shader-animation = true
 ```
 
 Reload with **Ctrl+Shift+,** (or restart Ghostty).
 
-> **Note:** `gradient-cloud` needs `background-opacity < 1` so background cells
-> are transparent (alpha ≈ 0) and the cloud shows through. At `1.0` the mask is
+> **Note:** these shaders need `background-opacity < 1` so background cells are
+> transparent (alpha ≈ 0) and the field shows through. At `1.0` the text mask is
 > opaque everywhere and you'll only see your normal background.
 
-Want only the cloud, no CRT? Drop the `crt-bloom.glsl` line.
+## How it works
 
-## Tuning `gradient-cloud`
+All shaders are standard [Shadertoy](https://www.shadertoy.com)-style GLSL
+(`void mainImage(out vec4 fragColor, in vec2 fragCoord)`), driven by Ghostty's
+`iChannel0` (the terminal), `iResolution`, and `iTime` uniforms. The closing
+composite is always:
 
-All knobs live near the top of `mainImage`:
+```glsl
+vec4 term = texture(iChannel0, uv);
+vec3 rgb  = mix(field, term.rgb, term.a);  // field where bg, text where glyph
+float a   = mix(0.92, 1.0, term.a);        // frosted panel; glyphs opaque
+fragColor = vec4(rgb, a);
+```
 
-| Want | Edit |
-|------|------|
-| Faster / slower drift | `float t = iTime * 0.04;` — raise for livelier, lower for calmer |
-| Different colors | the `c1`..`c4` palette `vec3`s |
-| More / less ember | the `ember * vec3(0.55, 0.20, 0.04)` magnitude, or widen the gate `smoothstep(0.72, 1.0, f)` |
-| Colder magma glow | swap ember color toward `vec3(0.5, 0.05, 0.25)` |
-| Darker overall | raise the `pow(col, vec3(1.15))` exponent toward `1.4` |
-| Let more desktop through | lower the `mix(0.92, 1.0, term.a)` floor (e.g. `0.8`) |
-
-## Compatibility
-
-Built and tested on Ghostty (Wayland / KDE Plasma). The cloud's transparency
-relies on a compositor that honors `background-opacity` + `background-blur`.
+Multiple `custom-shader` lines chain in order — later shaders post-process the
+output of earlier ones (that's how `default` layers CRT over the cloud).
 
 ## License
 
