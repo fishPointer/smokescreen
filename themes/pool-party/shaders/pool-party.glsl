@@ -37,7 +37,7 @@ float fbm(vec2 p) {
 // --- twinkling neon starfield ----------------------------------------------
 // One candidate star per grid cell; ~half the cells are lit. Each twinkles on
 // its own phase and carries a neon colour, giving that UV-confetti ambient glow.
-vec3 starLayer(vec2 sp, float density, float twinkleRate) {
+vec3 starLayer(vec2 sp, float density, float twinkleRate, float thr) {
     vec2 g  = sp * density;
     vec2 id = floor(g);
     vec2 fp = fract(g) - 0.5;
@@ -46,7 +46,7 @@ vec3 starLayer(vec2 sp, float density, float twinkleRate) {
     float d = length(fp - off);
     float core = smoothstep(0.06, 0.0, d);          // tight point
     float halo = smoothstep(0.34, 0.0, d) * 0.22;   // soft UV bloom
-    float present = step(0.72, h);                   // much rarer: ~28% of (now larger) cells lit
+    float present = step(thr, h);                    // rarity per layer  [knob]
     float twk = 0.30 + 0.70 * pow(0.5 + 0.5 * sin(iTime * twinkleRate + h * 6.2831), 2.0);
     // neon colour per cell: cyan / magenta / violet
     float hc = hash(id + 4.2);
@@ -99,14 +99,16 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                         1.0 - smoothstep(0.0, w2 * 7.0, d2));
     float glint = 0.35 + 0.65 * smoothstep(0.35, 0.90, fbm(p * 0.6 + vec2(st * 0.4, 0.0)));
     vec3 neon = mix(vec3(0.35, 1.00, 1.00), vec3(1.00, 0.35, 0.85), smoothstep(0.3, 0.7, q.y));
-    col += glow    * glint * neon * 0.15;   // shimmer activity reduced ~30%
-    col += caustic * glint * neon * 0.46;
+    col += glow    * glint * neon * 0.045;  // shimmer lines -> 30% of prior
+    col += caustic * glint * neon * 0.138;
 
     // --- twinkling starfield (two depths) drifting slowly ---
     vec2 sp = uv * vec2(aspect, 1.0);
-    vec3 stars  = starLayer(sp + vec2(iTime * 0.004, 0.0), 14.0, 2.4);   // ~4x bigger, far fewer
-    stars      += starLayer(sp * 1.9 + vec2(-iTime * 0.006, 3.3), 24.0, 3.6) * 0.7;
+    vec3 stars  = starLayer(sp + vec2(iTime * 0.004, 0.0), 14.0, 2.4, 0.72);          // big, sparse
+    stars      += starLayer(sp * 1.9 + vec2(-iTime * 0.006, 3.3), 24.0, 3.6, 0.86) * 0.7; // small layer, half as dense
     col += stars * 0.7;   // dimmer / more transparent
+
+    col *= 0.90;   // everything ~10% more transparent (global)
 
     // gentle vignette
     vec2 ce = uv - 0.5;
