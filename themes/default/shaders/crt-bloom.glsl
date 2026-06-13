@@ -8,7 +8,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     // --- CRT scanlines ---
     float scanline = sin(fragCoord.y * 2.0) * 0.5 + 0.5;
-    scanline = mix(1.0, scanline, 0.40);
+    scanline = mix(1.0, scanline, 0.50);
     col.rgb *= scanline;
 
     // --- Slight vignette ---

@@ -137,6 +137,25 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // --- composite behind the terminal text ---
   vec4 term = texture(iChannel0, suv);
   vec3 rgb = mix(col, term.rgb, term.a);   // gradient where bg, text where glyph
+
+  // Text-only bloom: sample a small neighborhood and accumulate ONLY glyph
+  // energy (weighted by the terminal alpha) so the glow hugs the text and not
+  // the gradient. Modest.  [knobs]
+  const float BLOOM = 0.22;
+  const float BLOOM_RADIUS = 1.5;
+  const int   BLOOM_SAMPLES = 4;
+  float bloom = 0.0;
+  for (int x = -BLOOM_SAMPLES; x <= BLOOM_SAMPLES; x++) {
+    for (int y = -BLOOM_SAMPLES; y <= BLOOM_SAMPLES; y++) {
+      vec2 off = vec2(float(x), float(y)) * BLOOM_RADIUS / iResolution.xy;
+      vec4 s = texture(iChannel0, suv + off);
+      bloom += length(s.rgb) * s.a;        // only text (alpha~1) contributes
+    }
+  }
+  bloom /= float((2 * BLOOM_SAMPLES + 1) * (2 * BLOOM_SAMPLES + 1));
+  vec3 glowColor = vec3(0.45, 0.55, 0.95);
+  rgb += bloom * glowColor * BLOOM;
+
   float a = mix(0.92, 1.0, term.a);        // frosted panel; glyphs fully opaque
   fragColor = vec4(rgb, a);
 }
