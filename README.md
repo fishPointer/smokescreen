@@ -17,6 +17,15 @@ obsidian, oxblood, plum, and verdigris, with rare molten-ember veins rising from
 the brightest filaments. CRT scanlines + soft bloom layer on top.
 Files: `gradient-cloud.glsl`, `crt-bloom.glsl`.
 
+### `distortion`
+Giratina / Distortion-World: a darker chthonic void threaded with molten
+**amber-gold veins** — sparse (they only host in drifting low-frequency
+patches), intense (sharp ridged filament cores), glittering (fast high-frequency
+gold sparks riding the filaments), and fleeting (a traveling pulse + drifting
+on/off envelope so veins flare up and die). Same obsidian/oxblood/plum/verdigris
+palette as `default`, pushed darker so the heat dominates. CRT on top.
+Files: `distortion.glsl`, `crt-bloom.glsl`.
+
 ### `radiantmatter-default`
 A faithful port of the [radiantmatter.io](https://radiantmatter.io) background
 gradient (by Noah): a Three.js WebGL mesh gradient — Ashima 3D simplex noise, a
