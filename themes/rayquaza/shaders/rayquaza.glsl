@@ -66,6 +66,34 @@ float snoise(vec3 v) {
 
 float fbm(vec3 p) { return snoise(p) * 0.667 + snoise(p * 2.0) * 0.333; }
 
+// --- small 2D hash + sparse twinkling starfield (the space backdrop) --------
+float h21(vec2 p) {
+    p = fract(p * vec2(123.34, 345.45));
+    p += dot(p, p + 34.345);
+    return fract(p.x * p.y);
+}
+float stars(vec2 g, float density, float tw) {
+    vec2 gp = g * density;
+    vec2 id = floor(gp);
+    vec2 fp = fract(gp) - 0.5;
+    float hh = h21(id);
+    vec2 off = (vec2(h21(id + 1.7), h21(id + 9.1)) - 0.5) * 0.7;
+    float d = length(fp - off);
+    float core = smoothstep(0.055, 0.0, d);
+    float present = step(0.86, hh);                  // sparse
+    float twk = 0.40 + 0.60 * pow(0.5 + 0.5 * sin(mod(iTime, S_LOOP) * tw + hh * 6.2831), 2.0);
+    return core * present * twk;
+}
+
+// --- slow-evolving atmospheric sky palette (muted) --------------------------
+vec3 skyPal(float t) {
+    vec3 a  = vec3(0.060, 0.080, 0.120);
+    vec3 b  = vec3(0.050, 0.060, 0.080);
+    vec3 cc = vec3(1.0, 1.0, 1.0);
+    vec3 d  = vec3(0.00, 0.25, 0.50);
+    return a + b * cos(6.28318 * (cc * t + d));
+}
+
 // --- rayquaza palette (deep ozone greens + a whisper of ring-gold) ----------
 const vec3 VOID    = vec3(0.0, 0.0, 0.0);
 const vec3 DEEP    = vec3(0.020, 0.090, 0.065);  // deep ozone green (near-black)
@@ -90,7 +118,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                 snoise(vec3(aw + q * 0.6 + vec2(8.3, 2.8), t * 0.5)));
   vec2 wuv = aw + r * 0.45;
 
-  vec3 col = VOID;
+  // --- atmospheric sky: a faint vertical gradient whose colours slowly migrate
+  // upward (the sky evolving over time), fading to black space toward the top ---
+  float st = mod(iTime, S_LOOP) * 0.010;        // very slow sky evolution  [knob]
+  float band = suv.y * 1.6 - st;                // colour bands rise slowly
+  float atmos = smoothstep(0.85, 0.0, suv.y);   // glow near the horizon (bottom)
+  vec3 col = skyPal(band) * atmos * 0.45;       // faint atmospheric tint over black
 
   // Back curtain — broad, deep-green haze, the body in shadow.
   float s1 = fbm(vec3(wuv * 1.2 + vec2(0.0, 5.0), t * 0.6));
@@ -121,6 +154,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
   float ceiling = 0.13;                              // brightness cap [knob]
   col *= ceiling / max(lum, ceiling);
+
+  // --- stars: sparse, gentle, added AFTER the ceiling so they stay crisp;
+  // weighted toward the upper "space" region, fewer near the horizon glow ---
+  vec2 sg = vec2(suv.x * aspect, suv.y);
+  float spaceMask = smoothstep(0.15, 0.75, suv.y);
+  float sf = stars(sg, 60.0, 1.1) + stars(sg * 1.7 + 4.0, 110.0, 1.6) * 0.6;
+  col += sf * spaceMask * vec3(0.65, 0.80, 1.00) * 0.35;   // faint blue-white glints
 
   // --- composite behind the terminal text ---
   vec4 term = texture(iChannel0, suv);
