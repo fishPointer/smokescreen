@@ -69,19 +69,19 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float vein = pow(ridgeBand, 8.0);                // SHARP thin filaments
     float halo = pow(ridgeBand, 2.5);                // soft glow around them
 
-    // Sparse: veins only host in some low-frequency patches.  [knob]
-    float patch = smoothstep(0.58, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
+    // Sparse: veins only host in some low-frequency pockets.  [knob]
+    float pocket = smoothstep(0.58, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
 
     // Fleeting: a traveling pulse + a drifting on/off envelope so veins flare
     // up and die rather than sitting static.
     float pulse = 0.5 + 0.5 * sin(vf * 9.0 - iTime * 1.3);
     float onoff = smoothstep(0.32, 0.85, fbm(p * 1.0 + vec2(-iTime * 0.06, iTime * 0.05)));
-    float life  = patch * pulse * onoff;
+    float life  = pocket * pulse * onoff;
 
     // Glitter: fast high-frequency sparks riding the filaments.
     float spark = noise(p * 36.0 + vec2(iTime * 2.6, iTime * 1.9));
     spark = pow(smoothstep(0.84, 1.0, spark), 2.0);
-    float glitter = spark * vein * patch;
+    float glitter = spark * vein * pocket;
 
     const vec3 AMBER = vec3(1.00, 0.50, 0.10);
     const vec3 GOLD  = vec3(1.00, 0.88, 0.58);
