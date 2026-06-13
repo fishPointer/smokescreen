@@ -122,7 +122,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // --- readability tuning -------------------------------------------------
   // Global saturation (chroma): mix toward luminance to mute the hues without
   // changing brightness. 1.0 = full color, 0.0 = grayscale.  [knob]
-  const float SATURATION = 0.48;
+  const float SATURATION = 0.50;
   float gray = dot(col, vec3(0.299, 0.587, 0.114));
   col = mix(vec3(gray), col, SATURATION);
 
