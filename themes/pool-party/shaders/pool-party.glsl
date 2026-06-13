@@ -1,8 +1,8 @@
 // smokescreen theme: pool-party
-// Pastel vaporwave pool. A soft pink / peach / aqua / lavender water surface
-// with bright cyan-white CAUSTIC shimmer — the same fwidth-isoline trick from
-// the distortion cracks, here recoloured and made pervasive so it reads as
-// sunlight reflecting off rippling water. CRT/VHS scanlines on top.
+// Vaporwave / cosmic-bowling-carpet under a blacklight: a STELLAR dark base
+// (deep celestial violet/indigo/teal, not chthonic) lit ambiently by a confetti
+// of twinkling neon sparkles, with UV-neon "squiggle" caustics (the fwidth
+// isoline shimmer) glowing across it. CRT/VHS scanlines on top.
 //
 // Composites behind the terminal text via iChannel0 alpha; needs
 // background-opacity < 1.
@@ -34,34 +34,54 @@ float fbm(vec2 p) {
     return v;
 }
 
+// --- twinkling neon starfield ----------------------------------------------
+// One candidate star per grid cell; ~half the cells are lit. Each twinkles on
+// its own phase and carries a neon colour, giving that UV-confetti ambient glow.
+vec3 starLayer(vec2 sp, float density, float twinkleRate) {
+    vec2 g  = sp * density;
+    vec2 id = floor(g);
+    vec2 fp = fract(g) - 0.5;
+    float h = hash(id);
+    vec2  off = (vec2(hash(id + 1.7), hash(id + 9.1)) - 0.5) * 0.7;
+    float d = length(fp - off);
+    float core = smoothstep(0.06, 0.0, d);          // tight point
+    float halo = smoothstep(0.34, 0.0, d) * 0.22;   // soft UV bloom
+    float present = step(0.55, h);                   // ~45% of cells lit
+    float twk = 0.30 + 0.70 * pow(0.5 + 0.5 * sin(iTime * twinkleRate + h * 6.2831), 2.0);
+    // neon colour per cell: cyan / magenta / violet
+    float hc = hash(id + 4.2);
+    vec3 cstar = mix(vec3(0.35, 1.00, 1.00), vec3(1.00, 0.35, 0.90), step(0.45, hc));
+    cstar = mix(cstar, vec3(0.70, 0.55, 1.00), step(0.80, hc));
+    return (core + halo) * present * twk * cstar;
+}
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
+    float aspect = iResolution.x / iResolution.y;
 
-    float t  = iTime * 0.04;   // slow water drift
-    float st = iTime * 0.22;   // caustic shimmer speed  [knob]
+    float t  = iTime * 0.04;   // slow drift
+    float st = iTime * 0.20;   // caustic shimmer speed  [knob]
     vec2 p = uv;
-    p.x *= iResolution.x / iResolution.y;
+    p.x *= aspect;
     p *= 1.4;
 
-    // gentle domain warp => the water-surface gradient sloshes
+    // gentle domain warp => the field sloshes
     vec2 q = vec2(fbm(p + vec2(0.0, t)),
                   fbm(p + vec2(5.2, 1.3 - t)));
     vec2 r = vec2(fbm(p + 3.0 * q + vec2(1.7, 9.2) + t * 0.5),
                   fbm(p + 3.0 * q + vec2(8.3, 2.8) - t * 0.5));
     float f = fbm(p + 3.0 * r);
 
-    // --- pastel pool palette (sunset reflected in turquoise water) ---
-    vec3 c1 = vec3(0.96, 0.66, 0.80);  // pastel pink
-    vec3 c2 = vec3(1.00, 0.82, 0.66);  // peach
-    vec3 c3 = vec3(0.40, 0.82, 0.88);  // aqua
-    vec3 c4 = vec3(0.66, 0.70, 0.97);  // lavender
+    // --- stellar dark base: deep celestial violet / indigo / teal ---
+    vec3 n1 = vec3(0.030, 0.018, 0.075);  // near-black indigo
+    vec3 n2 = vec3(0.090, 0.030, 0.150);  // deep violet
+    vec3 n3 = vec3(0.020, 0.070, 0.120);  // dark teal
+    vec3 col = mix(n1, n2, smoothstep(0.20, 0.80, f));
+    col = mix(col, n3, smoothstep(0.30, 0.92, r.x));
+    // faint UV ambient so the dark itself glows a little
+    col += vec3(0.020, 0.004, 0.035);
 
-    vec3 col = mix(c3, c1, smoothstep(0.10, 0.80, f));
-    col = mix(col, c4, smoothstep(0.30, 0.95, r.x));
-    col = mix(col, c2, smoothstep(0.25, 0.85, q.y));
-    col *= 0.62;   // deeper pastel so bright caustics pop & light text stays readable  [knob]
-
-    // --- caustic shimmer: two crossing animated isolines ---------------------
+    // --- UV-neon squiggle caustics: two crossing animated isolines ---
     vec2 op1 = mat2(1.0, 0.0,  0.7, 1.0) * p; op1 *= vec2(0.6, 1.8);
     vec2 op2 = mat2(1.0, 0.0, -0.7, 1.0) * p; op2 *= vec2(0.6, 1.8);
     float vf1 = fbm(op1 * 2.6 + 1.2 * r + vec2(0.0, st));
@@ -69,25 +89,27 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float d1 = abs(vf1 - 0.5); float w1 = max(fwidth(vf1), 1e-3);
     float d2 = abs(vf2 - 0.5); float w2 = max(fwidth(vf2), 1e-3);
     float caustic = max(1.0 - smoothstep(0.0, w1 * 2.0, d1),
-                        1.0 - smoothstep(0.0, w2 * 2.0, d2));   // bright shimmer lines
+                        1.0 - smoothstep(0.0, w2 * 2.0, d2));
     float glow    = max(1.0 - smoothstep(0.0, w1 * 7.0, d1),
-                        1.0 - smoothstep(0.0, w2 * 7.0, d2));   // soft reflective halo
-
-    // sun-glint: brightness varies across the pool so caustics sparkle unevenly
+                        1.0 - smoothstep(0.0, w2 * 7.0, d2));
     float glint = 0.35 + 0.65 * smoothstep(0.35, 0.90, fbm(p * 0.6 + vec2(st * 0.4, 0.0)));
+    vec3 neon = mix(vec3(0.35, 1.00, 1.00), vec3(1.00, 0.35, 0.85), smoothstep(0.3, 0.7, q.y));
+    col += glow    * glint * neon * 0.22;
+    col += caustic * glint * neon * 0.65;
 
-    const vec3 CAUSTIC = vec3(0.80, 1.00, 0.98);  // bright cyan-white reflection
-    col += glow    * glint * CAUSTIC * 0.35;
-    col += caustic * glint * CAUSTIC * 0.90;
+    // --- twinkling starfield (two depths) drifting slowly ---
+    vec2 sp = uv * vec2(aspect, 1.0);
+    vec3 stars  = starLayer(sp + vec2(iTime * 0.004, 0.0), 55.0, 2.4);
+    stars      += starLayer(sp * 1.9 + vec2(-iTime * 0.006, 3.3), 95.0, 3.6) * 0.7;
+    col += stars * 1.5;
 
-    // soft pastel lift (no dark crush) + gentle vignette
-    col = pow(col, vec3(0.92));
+    // gentle vignette
     vec2 ce = uv - 0.5;
-    col *= 1.0 - dot(ce, ce) * 0.35;
+    col *= 1.0 - dot(ce, ce) * 0.4;
 
     // --- composite behind the terminal ---
     vec4 term = texture(iChannel0, uv);
-    vec3 rgb = mix(col, term.rgb, term.a);   // water where bg, text where glyph
+    vec3 rgb = mix(col, term.rgb, term.a);   // field where bg, text where glyph
     float a = mix(0.92, 1.0, term.a);        // frosted panel; glyphs fully opaque
     fragColor = vec4(rgb, a);
 }

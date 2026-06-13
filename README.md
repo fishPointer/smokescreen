@@ -27,10 +27,10 @@ palette as `default`, pushed darker so the heat dominates. CRT on top.
 Files: `distortion.glsl`, `crt-bloom.glsl`.
 
 ### `pool-party`
-Pastel vaporwave pool: a soft pink / peach / aqua / lavender water surface with
-bright cyan-white **caustic shimmer** — the `distortion` fwidth-isoline trick
-recoloured and made pervasive so it reads as sunlight reflecting off rippling
-water, with an uneven sun-glint. CRT/VHS scanlines on top.
+Vaporwave / cosmic-bowling-carpet under a blacklight: a **stellar** dark base
+(deep celestial violet / indigo / teal) lit ambiently by a confetti of twinkling
+neon sparkles, with UV-neon "squiggle" caustics (the `distortion` fwidth-isoline
+shimmer, recoloured cyan/magenta) glowing across it. CRT/VHS scanlines on top.
 Files: `pool-party.glsl`, `crt-bloom.glsl`.
 
 ### `radiantmatter-default`
