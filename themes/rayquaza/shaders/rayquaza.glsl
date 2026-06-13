@@ -165,11 +165,17 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float ceiling = 0.13;                              // brightness cap [knob]
   col *= ceiling / max(lum, ceiling);
 
-  // --- ring-gold glints: warm highlights at the CREST of the front ribbon
-  // (Rayquaza's ring markings catching light). Added after the ceiling, like the
-  // stars, so they actually read instead of being capped away.  [knob]
-  float gold = smoothstep(0.72, 0.93, s2) * pow(vis2, 1.5);
-  col += GOLD * gold * 0.60;
+  // --- ring-gold glints: tiny, acute, RARE flashes at the EDGES of the ribbons
+  // (not inside the green body) — sparingly seen, like shooting stars. Gated by
+  // the ribbon rim AND a very sparse, briefly-blinking point field. Added after
+  // the ceiling so they actually read.  [knobs]
+  float edge = smoothstep(0.0, 0.5, vis2) * smoothstep(1.0, 0.5, vis2);  // ribbon rim only
+  vec2 gg = vec2(suv.x * aspect, suv.y) * 90.0;                          // tiny cells
+  float gh = h21(floor(gg));
+  float gpt = smoothstep(0.16, 0.0, length(fract(gg) - 0.5));            // tiny acute point
+  float gpresent = step(0.985, gh);                                      // very sparse (~1.5%)
+  float gblink = pow(0.5 + 0.5 * sin(mt * 0.8 + gh * 6.2831), 24.0);     // brief shooting-star flash
+  col += GOLD * (edge * gpt * gpresent * gblink) * 1.4;
 
   // --- stars: sparse, gentle, added AFTER the ceiling so they stay crisp;
   // weighted toward the upper "space" region, fewer near the horizon glow ---
