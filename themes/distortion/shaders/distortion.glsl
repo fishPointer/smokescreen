@@ -77,23 +77,23 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float vein = max(pow(rb1, 14.0), pow(rb2, 14.0)); // hairline cores (~1D)  [knob: sharpness]
     float halo = max(pow(rb1, 9.0),  pow(rb2, 9.0));  // razor-thin glow only
 
-    // Sparse hosting — baseline density, slightly thinned.  [knob]
-    float pocket = smoothstep(0.62, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
+    // Sparse hosting.  [knob]
+    float pocket = smoothstep(0.45, 0.82, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
 
     // Activation hot-zones: only a slow-drifting subset of the field is ever
     // "live" at once, so the TOTAL phase density (how much is active anywhere on
     // screen) stays low even though every pocket carries its own clock. This is
     // the master knob for overall activity.  [knob]
-    float hotzone = smoothstep(0.52, 0.80, fbm(p * 0.45 + vec2(t * 0.08, -t * 0.05)));
+    float hotzone = smoothstep(0.38, 0.74, fbm(p * 0.45 + vec2(t * 0.08, -t * 0.05)));
 
     // Per-region clock, decorrelated in space; SLOW + inertial so each vein
     // grinds into being and recedes over a long cycle.  [knobs]
     float region = fbm(p * 1.3 + 31.7);
-    float phase  = fract(iTime * 0.11 + region * 8.0);
+    float phase  = fract(iTime * 0.13 + region * 8.0);
 
     // Smooth swell — arises and fades, eased at both ends (inertial), no snap.
     // Lower the exponent to dwell longer at the bright crest.  [knob]
-    float swell = pow(sin(phase * 3.14159265), 1.2);
+    float swell = pow(sin(phase * 3.14159265), 0.8);
 
     float life = pocket * hotzone * swell;
 
@@ -102,8 +102,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     // The hairline crack itself, intense; only a razor-thin ember glow around it.
     vec3 heat = mix(EMBER, HOT, swell);
-    col += halo * life * EMBER * 0.40;   // thin ember halo hugging the line
-    col += vein * life * heat  * 3.40;   // the incandescent hairline crack
+    col += halo * life * EMBER * 0.65;   // thin ember halo hugging the line
+    col += vein * life * heat  * 4.50;   // the incandescent hairline crack
 
     // keep the floor truly dark (crush the lowest values toward black)
     col = pow(col, vec3(1.20));
