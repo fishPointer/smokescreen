@@ -71,9 +71,9 @@ const vec3 PINK    = vec3(0.918, 0.616, 0.922);  // #ea9deb
 const vec3 CYAN    = vec3(0.063, 0.882, 0.973);  // #10e1f8
 const vec3 GREEN   = vec3(0.0,   1.0,   0.616);  // #00ff9d
 
-// 2-octave fBm
+// 2-octave fBm — weighted toward the low octave for a softer, more diffuse body
 float fbm(vec3 p) {
-  return snoise(p) * 0.667 + snoise(p * 2.0) * 0.333;
+  return snoise(p) * 0.78 + snoise(p * 1.9) * 0.22;
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
@@ -93,22 +93,26 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     snoise(vec3(uv + q * 0.7 + vec2(1.7, 9.2), t * 0.35)),
     snoise(vec3(uv + q * 0.7 + vec2(8.3, 2.8), t * 0.35))
   );
-  vec2 wuv = uv + r * 0.5;
+  vec2 wuv = uv + r * 0.62;   // a touch more warp -> color pools spread wider
 
   vec3 col = BLACK;
 
+  // Diffusion pass: lower layer frequencies broaden the color pools, and the
+  // wider smoothsteps feather every edge so colors bleed gently instead of
+  // breaking into tight filaments.
+
   // Cool layer — cyan at peaks, deep blue at base, green filaments
-  float s1 = fbm(vec3(wuv * 1.1 + vec2(3.0, 7.0), t * 0.2 + 40.0));
-  float vis1 = smoothstep(0.1, 0.3, s1);
-  vec3 c1 = mix(DKBLUE, CYAN, smoothstep(0.20, 0.60, s1));
-  c1 = mix(c1, GREEN, smoothstep(0.35, 0.50, s1) * 0.55);
+  float s1 = fbm(vec3(wuv * 0.85 + vec2(3.0, 7.0), t * 0.2 + 40.0));
+  float vis1 = smoothstep(-0.10, 0.45, s1);
+  vec3 c1 = mix(DKBLUE, CYAN, smoothstep(0.00, 0.85, s1));
+  c1 = mix(c1, GREEN, smoothstep(0.20, 0.70, s1) * 0.55);
   col = mix(col, c1, vis1);
 
   // Warm layer — magenta/pink at peaks, purple at base
-  float s2 = fbm(vec3(wuv * 1.4, t * 0.3));
-  float vis2 = smoothstep(0.1, 0.3, s2);
-  vec3 c2 = mix(PURPLE, MAGENTA, smoothstep(0.25, 0.55, s2));
-  c2 = mix(c2, PINK, smoothstep(0.50, 0.75, s2));
+  float s2 = fbm(vec3(wuv * 1.05, t * 0.3));
+  float vis2 = smoothstep(-0.10, 0.45, s2);
+  vec3 c2 = mix(PURPLE, MAGENTA, smoothstep(0.05, 0.80, s2));
+  c2 = mix(c2, PINK, smoothstep(0.35, 0.95, s2));
   col = mix(col, c2, vis2);
 
   // --- readability tuning -------------------------------------------------
@@ -117,7 +121,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // the brightest peaks (hue preserved) while leaving the dark strata intact.
   col *= 0.40;                                       // overall dim  [knob]
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
-  float ceiling = 0.20;                              // brightness cap  [knob]
+  float ceiling = 0.10;                              // brightness cap  [knob]
   col *= ceiling / max(lum, ceiling);                // soft-clip highlights
 
   // --- composite behind the terminal text ---
