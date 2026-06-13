@@ -18,7 +18,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     bloom /= float((2 * samples + 1) * (2 * samples + 1));
 
     vec3 glowColor = vec3(0.45, 0.55, 0.95);
-    col.rgb += bloom * glowColor * 0.25;
+    col.rgb += bloom * glowColor * 0.38;
 
     // --- CRT scanlines ---
     float scanline = sin(fragCoord.y * 2.0) * 0.5 + 0.5;
