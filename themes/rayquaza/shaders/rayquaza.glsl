@@ -90,9 +90,11 @@ float stars(vec2 g, float density, float tw) {
 // orange-red segment; black gaps sit between the cool bands.
 vec3 skyPal(float t) {
     float u = fract(t);
+    // colour band occupies a window, fading in AND out on both edges, with a
+    // large black gap filling the rest of the cycle.  [knobs: window edges]
     vec3 hue = mix(vec3(0.04, 0.09, 0.18), vec3(0.05, 0.15, 0.10),
-                   smoothstep(0.05, 0.55, u));        // blue -> green
-    float presence = 1.0 - smoothstep(0.55, 0.95, u); // fade off after green
+                   smoothstep(0.0, 0.35, u));          // blue -> green across the band
+    float presence = smoothstep(0.0, 0.08, u) * (1.0 - smoothstep(0.25, 0.35, u));
     return hue * presence;
 }
 
@@ -106,7 +108,9 @@ const vec3 GOLD    = vec3(0.850, 0.660, 0.260);  // ring markings catching light
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   vec2 suv = fragCoord / iResolution.xy;   // for sampling the terminal texture
   float aspect = iResolution.x / iResolution.y;
-  float t = mod(iTime, S_LOOP) * 0.012;    // slow, calm drift
+  const float SPEED = 4.0;                  // DEBUG overclock (400%) — set back to 1.0
+  float mt = mod(iTime, S_LOOP) * SPEED;
+  float t = mt * 0.012;                     // calm drift (x SPEED)
 
   // Anisotropic coords: compress y so noise features stretch into tall,
   // serpentine aurora curtains rather than round blobs.
@@ -122,8 +126,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
   // --- atmospheric sky: a faint vertical gradient whose colours slowly migrate
   // upward (the sky evolving over time), fading to black space toward the top ---
-  float st = mod(iTime, S_LOOP) * 0.010;        // very slow sky evolution  [knob]
-  float band = suv.y * 0.8 - st;                // elongated colour bands, rising slowly  [knob]
+  float st = mt * 0.010;                        // slow sky evolution (x SPEED)  [knob]
+  float band = suv.y * 1.4 - st;                // colour-band frequency  [knob]
   float atmos = smoothstep(1.30, -0.10, suv.y); // gentle tint spanning the full height
   vec3 col = skyPal(band) * atmos * 0.22;       // barely-there atmospheric tint over black  [knob]
 
@@ -140,7 +144,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float s2 = fbm(vec3(wuv * 1.9 + vec2(4.0, 0.0), t * 0.9 + 20.0));
   float vis2 = smoothstep(0.28, 0.70, s2);
   vec3 c2 = mix(EMERALD, JADE, smoothstep(0.45, 0.85, s2));
-  c2 = mix(c2, GOLD, smoothstep(0.80, 0.96, s2) * 0.30);
+  c2 = mix(c2, GOLD, smoothstep(0.60, 0.88, s2) * 0.55);   // ring-gold, more present  [knob]
   const float FRONT_GAMMA   = 2.4;
   const float FRONT_OPACITY = 0.17;
   col = mix(col, c2, pow(vis2, FRONT_GAMMA) * FRONT_OPACITY);
