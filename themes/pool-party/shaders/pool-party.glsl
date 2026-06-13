@@ -60,7 +60,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float aspect = iResolution.x / iResolution.y;
 
     float t  = iTime * 0.04;   // slow drift
-    float st = iTime * 0.20;   // caustic shimmer speed  [knob]
+    float st = iTime * 0.06;   // caustic shimmer speed (much slower)  [knob]
     vec2 p = uv;
     p.x *= aspect;
     p *= 1.4;
@@ -94,8 +94,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                         1.0 - smoothstep(0.0, w2 * 7.0, d2));
     float glint = 0.35 + 0.65 * smoothstep(0.35, 0.90, fbm(p * 0.6 + vec2(st * 0.4, 0.0)));
     vec3 neon = mix(vec3(0.35, 1.00, 1.00), vec3(1.00, 0.35, 0.85), smoothstep(0.3, 0.7, q.y));
-    col += glow    * glint * neon * 0.22;
-    col += caustic * glint * neon * 0.65;
+    col += glow    * glint * neon * 0.15;   // shimmer activity reduced ~30%
+    col += caustic * glint * neon * 0.46;
 
     // --- twinkling starfield (two depths) drifting slowly ---
     vec2 sp = uv * vec2(aspect, 1.0);
