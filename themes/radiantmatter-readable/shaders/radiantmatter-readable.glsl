@@ -122,7 +122,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // --- readability tuning -------------------------------------------------
   // Global saturation (chroma): mix toward luminance to mute the hues without
   // changing brightness. 1.0 = full color, 0.0 = grayscale.  [knob]
-  const float SATURATION = 0.60;
+  const float SATURATION = 0.48;
   float gray = dot(col, vec3(0.299, 0.587, 0.114));
   col = mix(vec3(gray), col, SATURATION);
 
@@ -141,9 +141,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // Text-only bloom: sample a small neighborhood and accumulate ONLY glyph
   // energy (weighted by the terminal alpha) so the glow hugs the text and not
   // the gradient. Modest.  [knobs]
-  const float BLOOM = 0.25;
-  const float BLOOM_RADIUS = 1.5;
-  const int   BLOOM_SAMPLES = 8;
+  const float BLOOM = 0.20;
+  const float BLOOM_RADIUS = 3.0;
+  const int   BLOOM_SAMPLES = 4;
   float bloom = 0.0;
   for (int x = -BLOOM_SAMPLES; x <= BLOOM_SAMPLES; x++) {
     for (int y = -BLOOM_SAMPLES; y <= BLOOM_SAMPLES; y++) {
