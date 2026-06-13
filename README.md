@@ -17,13 +17,20 @@ obsidian, oxblood, plum, and verdigris, with rare molten-ember veins rising from
 the brightest filaments. CRT scanlines + soft bloom layer on top.
 Files: `gradient-cloud.glsl`, `crt-bloom.glsl`.
 
-### `radiantmatter`
+### `radiantmatter-default`
 A faithful port of the [radiantmatter.io](https://radiantmatter.io) background
 gradient (by Noah): a Three.js WebGL mesh gradient — Ashima 3D simplex noise, a
 2-octave fBm, a two-iteration domain warp, and two color layers (cool
-blue→cyan→green, warm purple→magenta→pink) over near-black. Brand palette lifted
-from the site's CSS variables. Adapted to composite behind terminal text.
+blue→cyan→green, warm purple→magenta→pink) over a pure-black base. Brand palette
+lifted from the site's CSS variables. Adapted to composite behind terminal text.
 Files: `radiantmatter.glsl`.
+
+### `radiantmatter-readable`
+The same gradient, tuned for terminal legibility: identical noise/warp/layers,
+but the field is dimmed and a luminance ceiling pulls down only the brightest
+cyan/pink/green peaks (hue preserved) so light text isn't washed out. The two
+knobs — overall dim and brightness `ceiling` — live in the shader's "readability
+tuning" block. Files: `radiantmatter-readable.glsl`.
 
 ## Install a theme
 
