@@ -65,12 +65,17 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // --- discharging amber veins ---------------------------------------------
     // Oblique, sheared + stretched sample space => acute diagonal STREAKS rather
     // than round dispersed pools; reduced warp keeps the filaments taut.
-    vec2 op = mat2(1.0, 0.0, 0.7, 1.0) * p;          // horizontal shear (oblique)
-    op *= vec2(0.55, 2.1);                            // stretch into streaks
-    float vf = fbm(op * 2.2 + 1.4 * r + vec2(0.0, t * 0.4));
-    float ridgeBand = 1.0 - abs(2.0 * vf - 1.0);     // bright where vf ~ 0.5
-    float vein = pow(ridgeBand, 6.0);                // broad carved grooves
-    float halo = pow(ridgeBand, 2.5);                // broad surrounding mass
+    // Two OPPOSING oblique streak fields => fine ~1D hairlines that cross like
+    // blades clashing in the dark — a cloud-chamber track feel. The "glaciers"
+    // themselves are absent; only the friction-cracks between them show.
+    vec2 op1 = mat2(1.0, 0.0,  0.7, 1.0) * p; op1 *= vec2(0.55, 2.1);
+    vec2 op2 = mat2(1.0, 0.0, -0.7, 1.0) * p; op2 *= vec2(0.55, 2.1);
+    float vf1 = fbm(op1 * 2.2 + 1.4 * r + vec2(0.0, t * 0.4));
+    float vf2 = fbm(op2 * 2.2 + 1.4 * r + vec2(9.1, 2.7 - t * 0.4));
+    float rb1 = 1.0 - abs(2.0 * vf1 - 1.0);
+    float rb2 = 1.0 - abs(2.0 * vf2 - 1.0);
+    float vein = max(pow(rb1, 14.0), pow(rb2, 14.0)); // hairline cores (~1D)  [knob: sharpness]
+    float halo = max(pow(rb1, 9.0),  pow(rb2, 9.0));  // razor-thin glow only
 
     // Sparse hosting — baseline density, slightly thinned.  [knob]
     float pocket = smoothstep(0.62, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
@@ -92,14 +97,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     float life = pocket * hotzone * swell;
 
-    const vec3 EMBER = vec3(1.00, 0.45, 0.08);   // deep amber base
-    const vec3 GOLD  = vec3(1.00, 0.80, 0.34);   // intense gold at the crest
+    const vec3 EMBER = vec3(1.00, 0.42, 0.07);   // deep amber — heat, gravitas, intent
+    const vec3 HOT   = vec3(1.00, 0.60, 0.18);   // hotter amber at the crest (still no pale gold)
 
-    // Grinding gold carving the void: a broad glacial body plus an intense
-    // carved core, colour heating toward gold at the peak of the swell.
-    vec3 heat = mix(EMBER, GOLD, swell);
-    col += halo * life * heat * 1.10;   // broad glacial mass
-    col += vein * life * GOLD * 3.20;   // intense carved core
+    // The hairline crack itself, intense; only a razor-thin ember glow around it.
+    vec3 heat = mix(EMBER, HOT, swell);
+    col += halo * life * EMBER * 0.40;   // thin ember halo hugging the line
+    col += vein * life * heat  * 3.40;   // the incandescent hairline crack
 
     // keep the floor truly dark (crush the lowest values toward black)
     col = pow(col, vec3(1.20));
