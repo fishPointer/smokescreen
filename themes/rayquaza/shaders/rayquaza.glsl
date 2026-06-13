@@ -121,9 +121,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // --- atmospheric sky: a faint vertical gradient whose colours slowly migrate
   // upward (the sky evolving over time), fading to black space toward the top ---
   float st = mod(iTime, S_LOOP) * 0.010;        // very slow sky evolution  [knob]
-  float band = suv.y * 1.6 - st;                // colour bands rise slowly
-  float atmos = smoothstep(0.85, 0.0, suv.y);   // glow near the horizon (bottom)
-  vec3 col = skyPal(band) * atmos * 0.45;       // faint atmospheric tint over black
+  float band = suv.y * 0.8 - st;                // elongated colour bands, rising slowly  [knob]
+  float atmos = smoothstep(1.30, -0.10, suv.y); // gentle tint spanning the full height
+  vec3 col = skyPal(band) * atmos * 0.22;       // barely-there atmospheric tint over black  [knob]
 
   // Back curtain — broad, deep-green haze, the body in shadow.
   float s1 = fbm(vec3(wuv * 1.2 + vec2(0.0, 5.0), t * 0.6));
@@ -158,9 +158,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // --- stars: sparse, gentle, added AFTER the ceiling so they stay crisp;
   // weighted toward the upper "space" region, fewer near the horizon glow ---
   vec2 sg = vec2(suv.x * aspect, suv.y);
-  float spaceMask = smoothstep(0.15, 0.75, suv.y);
   float sf = stars(sg, 60.0, 1.1) + stars(sg * 1.7 + 4.0, 110.0, 1.6) * 0.6;
-  col += sf * spaceMask * vec3(0.65, 0.80, 1.00) * 0.35;   // faint blue-white glints
+  col += sf * vec3(0.70, 0.82, 1.00) * 0.6;   // stars fully visible throughout, penetrating the atmosphere
 
   // --- composite behind the terminal text ---
   vec4 term = texture(iChannel0, suv);
