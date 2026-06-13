@@ -89,8 +89,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // --- UV-neon squiggle caustics: two crossing animated isolines ---
     vec2 op1 = mat2(1.0, 0.0,  0.7, 1.0) * p; op1 *= vec2(0.6, 1.8);
     vec2 op2 = mat2(1.0, 0.0, -0.7, 1.0) * p; op2 *= vec2(0.6, 1.8);
-    float vf1 = fbm(op1 * 2.6 + 1.2 * r + vec2(0.0, st));
-    float vf2 = fbm(op2 * 2.6 + 1.2 * r + vec2(9.1, 2.7 - st));
+    float vf1 = fbm(op1 * 1.1 + 1.2 * r + vec2(0.0, st));   // lower freq => far fewer lines  [knob]
+    float vf2 = fbm(op2 * 1.1 + 1.2 * r + vec2(9.1, 2.7 - st));
     float d1 = abs(vf1 - 0.5); float w1 = max(fwidth(vf1), 1e-3);
     float d2 = abs(vf2 - 0.5); float w2 = max(fwidth(vf2), 1e-3);
     float caustic = max(1.0 - smoothstep(0.0, w1 * 2.0, d1),
@@ -99,20 +99,20 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                         1.0 - smoothstep(0.0, w2 * 7.0, d2));
     float glint = 0.35 + 0.65 * smoothstep(0.35, 0.90, fbm(p * 0.6 + vec2(st * 0.4, 0.0)));
     vec3 neon = mix(vec3(0.35, 1.00, 1.00), vec3(1.00, 0.35, 0.85), smoothstep(0.3, 0.7, q.y));
-    col += glow    * glint * neon * 0.045;  // shimmer lines -> 30% of prior
-    col += caustic * glint * neon * 0.138;
+    col += glow    * glint * neon * 0.15;   // brightness restored to the "perfect" level
+    col += caustic * glint * neon * 0.46;   // (fewer lines achieved via lower frequency above)
 
     // --- twinkling starfield (two depths) drifting slowly ---
     vec2 sp = uv * vec2(aspect, 1.0);
     vec3 stars  = starLayer(sp + vec2(iTime * 0.004, 0.0), 14.0, 2.4, 0.72);          // big, sparse
-    stars      += starLayer(sp * 1.9 + vec2(-iTime * 0.006, 3.3), 24.0, 3.6, 0.86) * 0.7; // small layer, half as dense
+    stars      += starLayer(sp * 1.9 + vec2(-iTime * 0.006, 3.3), 24.0, 3.6, 0.95) * 0.7; // small layer: far fewer  [knob]
     col += stars * 0.7;   // dimmer / more transparent
 
-    col *= 0.90;   // everything ~10% more transparent (global)
+    col *= 0.81;   // everything ~10% more transparent again (global)
 
-    // gentle vignette
+    // vignette (stronger)
     vec2 ce = uv - 0.5;
-    col *= 1.0 - dot(ce, ce) * 0.4;
+    col *= 1.0 - dot(ce, ce) * 0.6;
 
     // --- composite behind the terminal ---
     vec4 term = texture(iChannel0, uv);
