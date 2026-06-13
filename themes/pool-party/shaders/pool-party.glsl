@@ -83,7 +83,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     float dens = smoothstep(0.30, 0.80, f);          // nebula coverage from the field
     const float NEB_GAMMA   = 1.8;   // higher => more of the field falls to black   [knob]
-    const float NEB_OPACITY = 0.55;  // densest nebula is still translucent           [knob]
+    const float NEB_OPACITY = 0.20;  // densest nebula is still translucent           [knob]
     vec3 col = mix(vec3(0.0), cloud, pow(dens, NEB_GAMMA) * NEB_OPACITY);
 
     // --- UV-neon squiggle caustics: two crossing animated isolines ---
