@@ -37,8 +37,8 @@ float fbm(vec2 p) {
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
 
-    // very slow, glacial field drift
-    float t = iTime * 0.035;
+    // slow field drift; fast effects key off iTime directly (glitter/pulse)
+    float t = iTime * 0.05;
     vec2 p = uv;
     p.x *= iResolution.x / iResolution.y;
     p *= 1.4;
@@ -62,55 +62,33 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     col *= 0.65;   // push the void darker so the veins dominate  [knob]
 
-    // --- discharging amber veins ---------------------------------------------
-    // Oblique, sheared + stretched sample space => acute diagonal STREAKS rather
-    // than round dispersed pools; reduced warp keeps the filaments taut.
-    // Two OPPOSING oblique streak fields => fine ~1D hairlines that cross like
-    // blades clashing in the dark — a cloud-chamber track feel. The "glaciers"
-    // themselves are absent; only the friction-cracks between them show.
-    vec2 op1 = mat2(1.0, 0.0,  0.7, 1.0) * p; op1 *= vec2(0.55, 2.1);
-    vec2 op2 = mat2(1.0, 0.0, -0.7, 1.0) * p; op2 *= vec2(0.55, 2.1);
-    float vf1 = fbm(op1 * 2.2 + 1.4 * r + vec2(0.0, t * 0.4));
-    float vf2 = fbm(op2 * 2.2 + 1.4 * r + vec2(9.1, 2.7 - t * 0.4));
-    // Thin ISOLINES at the vf = 0.5 level set, width normalised by the local
-    // gradient (fwidth) so they stay ~constant pixel width => true hairlines:
-    // bright lines on black, not a bright field with dark contours.
-    float d1 = abs(vf1 - 0.5);
-    float d2 = abs(vf2 - 0.5);
-    float w1 = max(fwidth(vf1), 1e-3);
-    float w2 = max(fwidth(vf2), 1e-3);
-    float vein = max(1.0 - smoothstep(0.0, w1 * 1.5, d1),
-                     1.0 - smoothstep(0.0, w2 * 1.5, d2));   // ~hairline cores  [knob: width mult]
-    float halo = max(1.0 - smoothstep(0.0, w1 * 6.0, d1),
-                     1.0 - smoothstep(0.0, w2 * 6.0, d2));   // soft glow band hugging the line
+    // --- glowing amber veins -------------------------------------------------
+    // Filament structure: ridged contours of a finer warped field.
+    float vf = fbm(p * 2.3 + 3.0 * r + vec2(0.0, t * 0.4));
+    float ridgeBand = 1.0 - abs(2.0 * vf - 1.0);     // bright where vf ~ 0.5
+    float vein = pow(ridgeBand, 8.0);                // SHARP thin filaments
+    float halo = pow(ridgeBand, 2.5);                // soft glow around them
 
-    // Sparse hosting.  [knob]
-    float pocket = smoothstep(0.45, 0.82, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
+    // Sparse: veins only host in some low-frequency pockets.  [knob]
+    float pocket = smoothstep(0.58, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
 
-    // Activation hot-zones: only a slow-drifting subset of the field is ever
-    // "live" at once, so the TOTAL phase density (how much is active anywhere on
-    // screen) stays low even though every pocket carries its own clock. This is
-    // the master knob for overall activity.  [knob]
-    float hotzone = smoothstep(0.38, 0.74, fbm(p * 0.45 + vec2(t * 0.08, -t * 0.05)));
+    // Fleeting: a traveling pulse + a drifting on/off envelope so veins flare
+    // up and die rather than sitting static.
+    float pulse = 0.5 + 0.5 * sin(vf * 9.0 - iTime * 1.3);
+    float onoff = smoothstep(0.32, 0.85, fbm(p * 1.0 + vec2(-iTime * 0.06, iTime * 0.05)));
+    float life  = pocket * pulse * onoff;
 
-    // Per-region clock, decorrelated in space; SLOW + inertial so each vein
-    // grinds into being and recedes over a long cycle.  [knobs]
-    float region = fbm(p * 1.3 + 31.7);
-    float phase  = fract(iTime * 0.13 + region * 8.0);
+    // Glitter: fast high-frequency sparks riding the filaments.
+    float spark = noise(p * 36.0 + vec2(iTime * 2.6, iTime * 1.9));
+    spark = pow(smoothstep(0.84, 1.0, spark), 2.0);
+    float glitter = spark * vein * pocket;
 
-    // Smooth swell — arises and fades, eased at both ends (inertial), no snap.
-    // Lower the exponent to dwell longer at the bright crest.  [knob]
-    float swell = pow(sin(phase * 3.14159265), 0.8);
+    const vec3 AMBER = vec3(1.00, 0.50, 0.10);
+    const vec3 GOLD  = vec3(1.00, 0.88, 0.58);
 
-    float life = pocket * hotzone * swell;
-
-    const vec3 EMBER = vec3(1.00, 0.42, 0.07);   // deep amber — heat, gravitas, intent
-    const vec3 HOT   = vec3(1.00, 0.60, 0.18);   // hotter amber at the crest (still no pale gold)
-
-    // The hairline crack itself, intense; only a razor-thin ember glow around it.
-    vec3 heat = mix(EMBER, HOT, swell);
-    col += halo * life * EMBER * 0.65;   // thin ember halo hugging the line
-    col += vein * life * heat  * 4.50;   // the incandescent hairline crack
+    col += halo  * life    * AMBER * 0.45;   // amber haze around veins
+    col += vein  * life    * AMBER * 1.70;   // the molten filament cores
+    col += glitter         * GOLD  * 2.40;   // hot gold sparkle
 
     // keep the floor truly dark (crush the lowest values toward black)
     col = pow(col, vec3(1.20));

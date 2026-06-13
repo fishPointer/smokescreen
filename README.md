@@ -26,6 +26,13 @@ on/off envelope so veins flare up and die). Same obsidian/oxblood/plum/verdigris
 palette as `default`, pushed darker so the heat dominates. CRT on top.
 Files: `distortion.glsl`, `crt-bloom.glsl`.
 
+### `pool-party`
+Pastel vaporwave pool: a soft pink / peach / aqua / lavender water surface with
+bright cyan-white **caustic shimmer** — the `distortion` fwidth-isoline trick
+recoloured and made pervasive so it reads as sunlight reflecting off rippling
+water, with an uneven sun-glint. CRT/VHS scanlines on top.
+Files: `pool-party.glsl`, `crt-bloom.glsl`.
+
 ### `radiantmatter-default`
 A faithful port of the [radiantmatter.io](https://radiantmatter.io) background
 gradient (by Noah): a Three.js WebGL mesh gradient — Ashima 3D simplex noise, a
