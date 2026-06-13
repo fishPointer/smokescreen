@@ -62,33 +62,36 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     col *= 0.65;   // push the void darker so the veins dominate  [knob]
 
-    // --- glowing amber veins -------------------------------------------------
-    // Filament structure: ridged contours of a finer warped field.
-    float vf = fbm(p * 2.3 + 3.0 * r + vec2(0.0, t * 0.4));
+    // --- discharging amber veins ---------------------------------------------
+    // Oblique, sheared + stretched sample space => acute diagonal STREAKS rather
+    // than round dispersed pools; reduced warp keeps the filaments taut.
+    vec2 op = mat2(1.0, 0.0, 0.7, 1.0) * p;          // horizontal shear (oblique)
+    op *= vec2(0.55, 2.1);                            // stretch into streaks
+    float vf = fbm(op * 2.2 + 1.4 * r + vec2(0.0, t * 0.4));
     float ridgeBand = 1.0 - abs(2.0 * vf - 1.0);     // bright where vf ~ 0.5
-    float vein = pow(ridgeBand, 8.0);                // SHARP thin filaments
-    float halo = pow(ridgeBand, 2.5);                // soft glow around them
+    float vein = pow(ridgeBand, 9.0);                // sharp taut filaments
+    float halo = pow(ridgeBand, 4.0);                // tighter glow (less dispersion)
 
     // Sparse: veins only host in some low-frequency pockets.  [knob]
     float pocket = smoothstep(0.58, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
 
-    // Fleeting: a traveling pulse + a drifting on/off envelope so veins flare
-    // up and die rather than sitting static.
-    float pulse = 0.5 + 0.5 * sin(vf * 9.0 - iTime * 1.3);
-    float onoff = smoothstep(0.32, 0.85, fbm(p * 1.0 + vec2(-iTime * 0.06, iTime * 0.05)));
-    float life  = pocket * pulse * onoff;
+    // Discharge: a FAST, sharp travelling flash (high power => mostly dark with
+    // brief acute spikes racing along the streak), plus a snappy on/off gate.
+    float flash = pow(0.5 + 0.5 * sin(vf * 13.0 - iTime * 4.2), 8.0);   // [knob: speed/sharpness]
+    float gate  = smoothstep(0.50, 0.72, fbm(p * 1.3 + vec2(-iTime * 0.30, iTime * 0.24)));
+    float life  = pocket * flash * gate;
 
     // Glitter: fast high-frequency sparks riding the filaments.
-    float spark = noise(p * 36.0 + vec2(iTime * 2.6, iTime * 1.9));
-    spark = pow(smoothstep(0.84, 1.0, spark), 2.0);
+    float spark = noise(op * 40.0 + vec2(iTime * 4.0, iTime * 3.0));
+    spark = pow(smoothstep(0.86, 1.0, spark), 2.0);
     float glitter = spark * vein * pocket;
 
     const vec3 AMBER = vec3(1.00, 0.50, 0.10);
     const vec3 GOLD  = vec3(1.00, 0.88, 0.58);
 
-    col += halo  * life    * AMBER * 0.45;   // amber haze around veins
-    col += vein  * life    * AMBER * 1.70;   // the molten filament cores
-    col += glitter         * GOLD  * 2.40;   // hot gold sparkle
+    col += halo  * life    * AMBER * 0.40;   // tight amber haze
+    col += vein  * life    * AMBER * 2.20;   // molten filament cores (brief => brighter)
+    col += glitter         * GOLD  * 2.60;   // hot gold sparkle
 
     // keep the floor truly dark (crush the lowest values toward black)
     col = pow(col, vec3(1.20));
