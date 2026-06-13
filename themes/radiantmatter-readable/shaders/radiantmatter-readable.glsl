@@ -71,9 +71,9 @@ const vec3 PINK    = vec3(0.918, 0.616, 0.922);  // #ea9deb
 const vec3 CYAN    = vec3(0.063, 0.882, 0.973);  // #10e1f8
 const vec3 GREEN   = vec3(0.0,   1.0,   0.616);  // #00ff9d
 
-// 2-octave fBm — weighted toward the low octave for a softer, more diffuse body
+// 2-octave fBm — heavily weighted to the low octave for a soft, diffuse body
 float fbm(vec3 p) {
-  return snoise(p) * 0.78 + snoise(p * 1.9) * 0.22;
+  return snoise(p) * 0.85 + snoise(p * 1.7) * 0.15;
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
@@ -94,7 +94,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     snoise(vec3(uv + q * 0.7 + vec2(1.7, 9.2), t * 0.35)),
     snoise(vec3(uv + q * 0.7 + vec2(8.3, 2.8), t * 0.35))
   );
-  vec2 wuv = uv + r * 0.62;   // a touch more warp -> color pools spread wider
+  vec2 wuv = uv + r * 0.90;   // heavy warp -> color is smeared, struggles to pool
 
   vec3 col = BLACK;
 
@@ -107,18 +107,18 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // transparent (black shows through), only DENSE cores approach opaque. This
   // is what makes it read as translucent smoke over a dominant black instead
   // of flat color painted on top. Separate from brightness (dim/ceiling).
-  const float DENSITY_GAMMA = 2.6;   // higher = thin areas vanish faster   [knob]
-  const float MAX_OPACITY   = 0.85;  // densest cores still let some black through [knob]
+  const float DENSITY_GAMMA = 4.2;   // higher = thin areas vanish faster   [knob]
+  const float MAX_OPACITY   = 0.60;  // densest cores still let some black through [knob]
 
   // Cool layer — cyan at peaks, deep blue at base, green filaments
-  float s1 = fbm(vec3(wuv * 0.85 + vec2(3.0, 7.0), t * 0.2 + 40.0));
+  float s1 = fbm(vec3(wuv * 0.72 + vec2(3.0, 7.0), t * 0.2 + 40.0));
   float vis1 = smoothstep(-0.10, 0.45, s1);
   vec3 c1 = mix(DKBLUE, CYAN, smoothstep(0.00, 0.85, s1));
   c1 = mix(c1, GREEN, smoothstep(0.20, 0.70, s1) * 0.55);
   col = mix(col, c1, pow(vis1, DENSITY_GAMMA) * MAX_OPACITY);
 
   // Warm layer — magenta/pink at peaks, purple at base
-  float s2 = fbm(vec3(wuv * 1.05, t * 0.3));
+  float s2 = fbm(vec3(wuv * 0.90, t * 0.3));
   float vis2 = smoothstep(-0.10, 0.45, s2);
   vec3 c2 = mix(PURPLE, MAGENTA, smoothstep(0.05, 0.80, s2));
   c2 = mix(c2, PINK, smoothstep(0.35, 0.95, s2));
