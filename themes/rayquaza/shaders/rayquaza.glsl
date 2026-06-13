@@ -112,7 +112,7 @@ const vec3 GOLD    = vec3(0.850, 0.660, 0.260);  // ring markings catching light
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   vec2 suv = fragCoord / iResolution.xy;   // for sampling the terminal texture
   float aspect = iResolution.x / iResolution.y;
-  const float SPEED = 4.0;                  // DEBUG overclock (400%) — set back to 1.0
+  const float SPEED = 2.0;                  // DEBUG overclock (200%) — set back to 1.0
   float mt = mod(iTime, S_LOOP) * SPEED;
   float t = mt * 0.012;                     // calm drift (x SPEED)
 
@@ -165,23 +165,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float ceiling = 0.13;                              // brightness cap [knob]
   col *= ceiling / max(lum, ceiling);
 
-  // --- ring-gold glint: a SINGLE intense 4-point star that pops once per period
-  // at a hashed location (may overlay the cloud), via an attack-release "pop".
-  // One acute sparkle at a time — no spread or strobe over the green body.
-  const float GLINT_PERIOD = 3.0;   // seconds between glints  [knob]
-  float gi = floor(mt / GLINT_PERIOD);
-  float gf = fract(mt / GLINT_PERIOD);
-  vec2 gpos = vec2(h21(vec2(gi, 1.7)) - 0.5, h21(vec2(gi, 8.3)) - 0.5);
-  gpos.x *= aspect;
-  // AR envelope: fast attack, quick release, then silent until the next period.
-  float env = smoothstep(0.0, 0.05, gf) * (1.0 - smoothstep(0.06, 0.34, gf));
-  vec2 pc = vec2((suv.x - 0.5) * aspect, suv.y - 0.5);
-  vec2 sp2 = abs(pc - gpos) / 0.085;                  // star size  [knob]
-  float scoreC = smoothstep(0.5, 0.0, length(sp2));   // bright core
-  float armX = smoothstep(0.035, 0.0, sp2.y) * max(0.0, 1.0 - sp2.x);  // horizontal spikes
-  float armY = smoothstep(0.035, 0.0, sp2.x) * max(0.0, 1.0 - sp2.y);  // vertical spikes
-  float star4 = scoreC + armX + armY;
-  col += GOLD * star4 * env * 2.2;                     // [knob: strength]
+  // --- ring-gold: a soft warm glow at the crest of the front ribbon. Added
+  // after the ceiling so it reads.  [knob]
+  float gold = smoothstep(0.72, 0.93, s2) * pow(vis2, 1.5);
+  col += GOLD * gold * 0.60;
 
   // --- stars: sparse, gentle, added AFTER the ceiling so they stay crisp;
   // weighted toward the upper "space" region, fewer near the horizon glow ---
