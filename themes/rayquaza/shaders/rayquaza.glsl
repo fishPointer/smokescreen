@@ -173,9 +173,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   vec2 gg = vec2(suv.x * aspect, suv.y) * 90.0;                          // tiny cells
   float gh = h21(floor(gg));
   float gpt = smoothstep(0.16, 0.0, length(fract(gg) - 0.5));            // tiny acute point
-  float gpresent = step(0.985, gh);                                      // very sparse (~1.5%)
-  float gblink = pow(0.5 + 0.5 * sin(mt * 0.8 + gh * 6.2831), 24.0);     // brief shooting-star flash
-  col += GOLD * (edge * gpt * gpresent * gblink) * 1.4;
+  float gpresent = step(0.955, gh);                                      // sparse (~4.5%)  [knob: rarity]
+  float gblink = pow(0.5 + 0.5 * sin(mt * 0.8 + gh * 6.2831), 12.0);     // brief shooting-star flash  [knob]
+  col += GOLD * (edge * gpt * gpresent * gblink) * 1.8;                  // [knob: strength]
 
   // --- stars: sparse, gentle, added AFTER the ceiling so they stay crisp;
   // weighted toward the upper "space" region, fewer near the horizon glow ---
