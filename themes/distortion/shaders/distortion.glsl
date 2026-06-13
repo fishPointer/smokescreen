@@ -1,4 +1,4 @@
-const float S_LOOP = 1800.0; // smokescreen: wrap iTime (~30min loop) to avoid float32 precision jitter
+const float S_LOOP = 3600.0; // smokescreen: wrap iTime (~60min loop) to avoid float32 precision jitter
 // smokescreen theme: distortion
 // Giratina / Distortion-World vibe: a dark, domain-warped void threaded with
 // glowing molten amber-gold VEINS that are sparse, intense, glittering, and

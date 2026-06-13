@@ -1,4 +1,4 @@
-const float S_LOOP = 1800.0; // smokescreen: wrap iTime (~30min loop) to avoid float32 precision jitter
+const float S_LOOP = 3600.0; // smokescreen: wrap iTime (~60min loop) to avoid float32 precision jitter
 // smokescreen theme: pool-party
 // Vaporwave / cosmic-bowling-carpet under a blacklight: a STELLAR dark base
 // (deep celestial violet/indigo/teal, not chthonic) lit ambiently by a confetti

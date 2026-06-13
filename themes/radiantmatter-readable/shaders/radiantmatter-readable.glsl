@@ -1,4 +1,4 @@
-const float S_LOOP = 1800.0; // smokescreen: wrap iTime (~30min loop) to avoid float32 precision jitter
+const float S_LOOP = 3600.0; // smokescreen: wrap iTime (~60min loop) to avoid float32 precision jitter
 // smokescreen theme: radiantmatter-readable
 // The radiantmatter.io gradient (by Noah), tuned for terminal legibility:
 // identical noise/warp/layers as radiantmatter-default, but the bright peaks

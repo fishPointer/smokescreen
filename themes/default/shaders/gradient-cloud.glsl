@@ -1,4 +1,4 @@
-const float S_LOOP = 1800.0; // smokescreen: wrap iTime (~30min loop) to avoid float32 precision jitter
+const float S_LOOP = 3600.0; // smokescreen: wrap iTime (~60min loop) to avoid float32 precision jitter
 // Animated pastel "color cloud" background for Ghostty.
 // A domain-warped FBM mesh-gradient (Stripe-banner vibe, dark-mode palette)
 // painted BEHIND the terminal text. The terminal arrives as iChannel0; its

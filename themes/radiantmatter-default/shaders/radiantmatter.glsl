@@ -1,4 +1,4 @@
-const float S_LOOP = 1800.0; // smokescreen: wrap iTime (~30min loop) to avoid float32 precision jitter
+const float S_LOOP = 3600.0; // smokescreen: wrap iTime (~60min loop) to avoid float32 precision jitter
 // smokescreen theme: radiantmatter
 // A faithful port of the radiantmatter.io background gradient (by Noah) to a
 // Ghostty background shader.

@@ -33,6 +33,15 @@ neon sparkles, with UV-neon "squiggle" caustics (the `distortion` fwidth-isoline
 shimmer, recoloured cyan/magenta) glowing across it. CRT/VHS scanlines on top.
 Files: `pool-party.glsl`, `crt-bloom.glsl`.
 
+### `deoxys`
+The DNA Pokémon. A rotating crystalline **double-helix** down the center (two
+depth-shaded strands with beads + rungs) around a pulsing psychic **core** with
+**radial** energy spikes, all washed in an iridescent IQ cosine palette over a
+dark psychic void. The signature move: **forme-morphing** — it cycles Deoxys'
+four formes (Normal / Attack / Defense / Speed), each a distinct geometry + hue,
+firing a **chromatic-aberration "mutation" glitch** at every forme change. CRT
+on top. Files: `deoxys.glsl`, `crt-bloom.glsl`.
+
 ### `radiantmatter-default`
 A faithful port of the [radiantmatter.io](https://radiantmatter.io) background
 gradient (by Noah): a Three.js WebGL mesh gradient — Ashima 3D simplex noise, a
