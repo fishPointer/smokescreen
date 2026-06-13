@@ -72,31 +72,36 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float vein = pow(ridgeBand, 9.0);                // sharp taut filaments
     float halo = pow(ridgeBand, 4.0);                // tighter glow (less dispersion)
 
-    // Sparse hosting — back to baseline density.  [knob]
-    float pocket = smoothstep(0.58, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
+    // Sparse hosting — baseline density, slightly thinned.  [knob]
+    float pocket = smoothstep(0.62, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
+
+    // Activation hot-zones: only a slow-drifting subset of the field is ever
+    // "live" at once, so the TOTAL phase density (how much is active anywhere on
+    // screen) stays low even though every pocket carries its own clock. This is
+    // the master knob for overall activity.  [knob]
+    float active = smoothstep(0.52, 0.80, fbm(p * 0.45 + vec2(t * 0.08, -t * 0.05)));
 
     // Per-region clock, STRONGLY decorrelated in space so discharges are
-    // isolated local events (no screen-wide synchronized pulse). The region
-    // field is higher-frequency and the phase offset large, so neighbouring
-    // pockets fire at very different times. Slow rate => infrequent.  [knobs]
+    // isolated local events (no screen-wide synchronized pulse). Slow rate
+    // => infrequent.  [knobs]
     float region = fbm(p * 1.3 + 31.7);
-    float phase  = fract(iTime * 0.30 + region * 8.0);
+    float phase  = fract(iTime * 0.24 + region * 8.0);
 
     // AR envelope: a SLOW, subtle wind-up (charging) across the whole cycle,
     // then a brief gentle snap at the crest, then dark.
-    float windup = smoothstep(0.0, 0.95, phase) * 0.15;    // [knob: charge glow]
+    float windup = smoothstep(0.0, 0.95, phase) * 0.10;    // [knob: charge glow]
     float snap   = pow(smoothstep(0.90, 1.0, phase), 3.0); // [knob: snap window]
     float arc    = windup + snap;
 
     // acute travelling spike keeps each discharge directional along the streak
     float bolt = pow(0.5 + 0.5 * sin(vf * 13.0 - iTime * 5.0), 6.0);
 
-    float life = pocket * arc;
+    float life = pocket * active * arc;
 
     // Glitter: fast high-frequency sparks riding the filaments.
     float spark = noise(op * 40.0 + vec2(iTime * 4.0, iTime * 3.0));
     spark = pow(smoothstep(0.86, 1.0, spark), 2.0);
-    float glitter = spark * vein * pocket;
+    float glitter = spark * vein * pocket * active;
 
     const vec3 AMBER = vec3(1.00, 0.50, 0.10);
     const vec3 GOLD  = vec3(1.00, 0.88, 0.58);
