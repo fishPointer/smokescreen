@@ -76,6 +76,31 @@ fragColor = vec4(rgb, a);
 Multiple `custom-shader` lines chain in order — later shaders post-process the
 output of earlier ones (that's how `default` layers CRT over the cloud).
 
+## Examples
+
+[`examples/ghostty.conf`](examples/ghostty.conf) is a full working Ghostty
+config using the `radiantmatter-readable` theme (transparency, blur, the gradient
++ CRT chain) — handy as a reference for the whole setup, not just the shader
+lines.
+
+## Development (single source of truth)
+
+To iterate without copying files into `~/.config/ghostty/shaders/` after every
+edit, symlink the live shaders at the repo copies — then editing a shader here
+updates the running terminal on the next reload (**Ctrl+Shift+,**):
+
+```sh
+S=~/.config/ghostty/shaders; R=~/smokescreen/themes
+ln -sf "$R/radiantmatter-readable/shaders/radiantmatter-readable.glsl" "$S/radiantmatter-readable.glsl"
+ln -sf "$R/radiantmatter-readable/shaders/crt-bloom.glsl"              "$S/crt-bloom.glsl"
+ln -sf "$R/default/shaders/gradient-cloud.glsl"                        "$S/gradient-cloud.glsl"
+ln -sf "$R/radiantmatter-default/shaders/radiantmatter.glsl"          "$S/radiantmatter.glsl"
+```
+
+Note: `crt-bloom.glsl` is duplicated per-theme so each theme stays a
+self-contained installable bundle; the live symlink points at the active theme's
+copy.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
