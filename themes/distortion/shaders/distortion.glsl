@@ -72,20 +72,20 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float vein = pow(ridgeBand, 9.0);                // sharp taut filaments
     float halo = pow(ridgeBand, 4.0);                // tighter glow (less dispersion)
 
-    // Sparse hosting — widened (lower threshold) so discharges appear in MORE
-    // places at once.  [knob]
-    float pocket = smoothstep(0.45, 0.85, fbm(p * 1.0 + vec2(t * 0.06, -t * 0.06)));
+    // Sparse hosting — back to baseline density.  [knob]
+    float pocket = smoothstep(0.58, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
 
-    // Independent per-region clock: each area charges & fires on its own phase,
-    // staggered by a slow spatial field, so multiple arcs occur at once.
-    // Raise the rate (0.75) for more frequent discharges.  [knob]
-    float region = fbm(p * 0.6 + 31.7);
-    float phase  = fract(iTime * 0.75 + region * 4.0);
+    // Per-region clock, STRONGLY decorrelated in space so discharges are
+    // isolated local events (no screen-wide synchronized pulse). The region
+    // field is higher-frequency and the phase offset large, so neighbouring
+    // pockets fire at very different times. Slow rate => infrequent.  [knobs]
+    float region = fbm(p * 1.3 + 31.7);
+    float phase  = fract(iTime * 0.30 + region * 8.0);
 
-    // AR envelope of an electric arc: a slow wind-up (charging corona) that
-    // builds across the cycle, then a sharp SNAP at the crest, then dark.
-    float windup = smoothstep(0.15, 0.92, phase) * 0.35;   // [knob: charge glow]
-    float snap   = pow(smoothstep(0.86, 1.0, phase), 3.0); // [knob: snap sharpness]
+    // AR envelope: a SLOW, subtle wind-up (charging) across the whole cycle,
+    // then a brief gentle snap at the crest, then dark.
+    float windup = smoothstep(0.0, 0.95, phase) * 0.15;    // [knob: charge glow]
+    float snap   = pow(smoothstep(0.90, 1.0, phase), 3.0); // [knob: snap window]
     float arc    = windup + snap;
 
     // acute travelling spike keeps each discharge directional along the streak
@@ -101,10 +101,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     const vec3 AMBER = vec3(1.00, 0.50, 0.10);
     const vec3 GOLD  = vec3(1.00, 0.88, 0.58);
 
-    col += halo * life                 * AMBER * 0.40;  // charging corona / haze
-    col += vein * life                 * AMBER * 2.20;  // molten filament cores
-    col += vein * pocket * snap * bolt * GOLD  * 1.40;  // the acute crack at the snap
-    col += glitter                     * GOLD  * 2.60;  // hot gold sparkle
+    col += halo * life                 * AMBER * 0.30;  // faint charging haze
+    col += vein * life                 * AMBER * 1.10;  // filament cores (subtler)
+    col += vein * pocket * snap * bolt * GOLD  * 0.60;  // gentle crack at the snap
+    col += glitter                     * GOLD  * 1.60;  // sparkle (subtler)
 
     // keep the floor truly dark (crush the lowest values toward black)
     col = pow(col, vec3(1.20));
