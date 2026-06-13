@@ -85,13 +85,15 @@ float stars(vec2 g, float density, float tw) {
     return core * present * twk;
 }
 
-// --- slow-evolving atmospheric sky palette (muted) --------------------------
+// --- slow-evolving atmospheric sky palette (cool-only) ----------------------
+// Deep blue -> green within each band, then fades entirely to black. No warm /
+// orange-red segment; black gaps sit between the cool bands.
 vec3 skyPal(float t) {
-    vec3 a  = vec3(0.060, 0.080, 0.120);
-    vec3 b  = vec3(0.050, 0.060, 0.080);
-    vec3 cc = vec3(1.0, 1.0, 1.0);
-    vec3 d  = vec3(0.00, 0.25, 0.50);
-    return a + b * cos(6.28318 * (cc * t + d));
+    float u = fract(t);
+    vec3 hue = mix(vec3(0.04, 0.09, 0.18), vec3(0.05, 0.15, 0.10),
+                   smoothstep(0.05, 0.55, u));        // blue -> green
+    float presence = 1.0 - smoothstep(0.55, 0.95, u); // fade off after green
+    return hue * presence;
 }
 
 // --- rayquaza palette (deep ozone greens + a whisper of ring-gold) ----------
