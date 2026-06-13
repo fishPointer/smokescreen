@@ -165,17 +165,23 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float ceiling = 0.13;                              // brightness cap [knob]
   col *= ceiling / max(lum, ceiling);
 
-  // --- ring-gold glints: tiny, acute, RARE flashes at the EDGES of the ribbons
-  // (not inside the green body) — sparingly seen, like shooting stars. Gated by
-  // the ribbon rim AND a very sparse, briefly-blinking point field. Added after
-  // the ceiling so they actually read.  [knobs]
-  float edge = smoothstep(0.0, 0.5, vis2) * smoothstep(1.0, 0.5, vis2);  // ribbon rim only
-  vec2 gg = vec2(suv.x * aspect, suv.y) * 90.0;                          // tiny cells
-  float gh = h21(floor(gg));
-  float gpt = smoothstep(0.16, 0.0, length(fract(gg) - 0.5));            // tiny acute point
-  float gpresent = step(0.955, gh);                                      // sparse (~4.5%)  [knob: rarity]
-  float gblink = pow(0.5 + 0.5 * sin(mt * 0.8 + gh * 6.2831), 12.0);     // brief shooting-star flash  [knob]
-  col += GOLD * (edge * gpt * gpresent * gblink) * 1.8;                  // [knob: strength]
+  // --- ring-gold glint: a SINGLE intense 4-point star that pops once per period
+  // at a hashed location (may overlay the cloud), via an attack-release "pop".
+  // One acute sparkle at a time — no spread or strobe over the green body.
+  const float GLINT_PERIOD = 3.0;   // seconds between glints  [knob]
+  float gi = floor(mt / GLINT_PERIOD);
+  float gf = fract(mt / GLINT_PERIOD);
+  vec2 gpos = vec2(h21(vec2(gi, 1.7)) - 0.5, h21(vec2(gi, 8.3)) - 0.5);
+  gpos.x *= aspect;
+  // AR envelope: fast attack, quick release, then silent until the next period.
+  float env = smoothstep(0.0, 0.05, gf) * (1.0 - smoothstep(0.06, 0.34, gf));
+  vec2 pc = vec2((suv.x - 0.5) * aspect, suv.y - 0.5);
+  vec2 sp2 = abs(pc - gpos) / 0.085;                  // star size  [knob]
+  float scoreC = smoothstep(0.5, 0.0, length(sp2));   // bright core
+  float armX = smoothstep(0.035, 0.0, sp2.y) * max(0.0, 1.0 - sp2.x);  // horizontal spikes
+  float armY = smoothstep(0.035, 0.0, sp2.x) * max(0.0, 1.0 - sp2.y);  // vertical spikes
+  float star4 = scoreC + armX + armY;
+  col += GOLD * star4 * env * 2.2;                     // [knob: strength]
 
   // --- stars: sparse, gentle, added AFTER the ceiling so they stay crisp;
   // weighted toward the upper "space" region, fewer near the horizon glow ---
