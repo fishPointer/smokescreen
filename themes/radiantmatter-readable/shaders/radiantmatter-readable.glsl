@@ -115,9 +115,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // Terminal text is light; the brightest cyan/pink/green peaks wash it out.
   // Dim the field overall, then apply a luminance ceiling that pulls down ONLY
   // the brightest peaks (hue preserved) while leaving the dark strata intact.
-  col *= 0.62;                                       // overall dim  [knob]
+  col *= 0.40;                                       // overall dim  [knob]
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
-  float ceiling = 0.24;                              // brightness cap  [knob]
+  float ceiling = 0.20;                              // brightness cap  [knob]
   col *= ceiling / max(lum, ceiling);                // soft-clip highlights
 
   // --- composite behind the terminal text ---
