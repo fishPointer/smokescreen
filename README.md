@@ -42,6 +42,16 @@ four formes (Normal / Attack / Defense / Speed), each a distinct geometry + hue,
 firing a **chromatic-aberration "mutation" glitch** at every forme change. CRT
 on top. Files: `deoxys.glsl`, `crt-bloom.glsl`.
 
+### `rayquaza`
+The ozone-layer sky serpent as **calm, not spectacle**: a slow emerald aurora
+over a near-black void, the dragon's undulating body rendered as serpentine
+vertical curtains (via **anisotropic sampling** — y compressed so the flow
+elongates into ribbons), with only a whisper of ring-gold at the crest. Built on
+Noah's architecture + radiantmatter-readable's ergonomic tuning (density→opacity,
+saturation, dim, luminance ceiling, text-only bloom). Designed for long,
+comfortable sessions — mostly black, low peaks, slow drift, nothing that flashes.
+Files: `rayquaza.glsl`, `crt-bloom.glsl`.
+
 ### `radiantmatter-default`
 A faithful port of the [radiantmatter.io](https://radiantmatter.io) background
 gradient (by Noah): a Three.js WebGL mesh gradient — Ashima 3D simplex noise, a
