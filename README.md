@@ -71,6 +71,24 @@ radiantmatter-readable's ergonomic tuning; calm enough for long sessions, with
 one rare delight. Made for Brennan (0xjirachi), the economic wishmaster.
 Files: `jirachi.glsl`, `crt-bloom.glsl`.
 
+### `groudon`
+Primal Groudon (Ground/Fire) as **tectonic plates of glowing rock**: near-black
+basalt broken into plates by a network of molten **Voronoi cracks** that flow
+orange → yellow → **white-hot** where the magma surges, with a slow magma
+"breathe," a heat-haze shimmer on the seams, **rising embers**, and a low
+drought-sun warmth under it all. Ergonomic (luminance ceiling + warm text bloom)
+so the hot seams never wash out light text. CRT on top.
+Files: `groudon.glsl`, `crt-bloom.glsl`.
+
+### `kyogre`
+Primal Kyogre (Water) as a **deep-sea abyss** — the oceanic counterpart to
+`groudon`: a dark-blue depth gradient (abyss below, teal near the surface),
+shimmering **water caustics** (`fwidth` isolines of a drifting current), swaying
+**god-ray** light shafts descending from the surface, and drifting
+**bioluminescent plankton** (mostly cyan, with rare warm-red motes echoing
+Kyogre's markings). Ergonomic ceiling + cool-blue text bloom for legibility.
+CRT on top. Files: `kyogre.glsl`, `crt-bloom.glsl`.
+
 ### `radiantmatter-default`
 A faithful port of the [radiantmatter.io](https://radiantmatter.io) background
 gradient (by Noah): a Three.js WebGL mesh gradient — Ashima 3D simplex noise, a
