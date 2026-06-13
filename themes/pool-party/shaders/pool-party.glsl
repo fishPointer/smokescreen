@@ -46,7 +46,7 @@ vec3 starLayer(vec2 sp, float density, float twinkleRate) {
     float d = length(fp - off);
     float core = smoothstep(0.06, 0.0, d);          // tight point
     float halo = smoothstep(0.34, 0.0, d) * 0.22;   // soft UV bloom
-    float present = step(0.55, h);                   // ~45% of cells lit
+    float present = step(0.72, h);                   // much rarer: ~28% of (now larger) cells lit
     float twk = 0.30 + 0.70 * pow(0.5 + 0.5 * sin(iTime * twinkleRate + h * 6.2831), 2.0);
     // neon colour per cell: cyan / magenta / violet
     float hc = hash(id + 4.2);
@@ -104,9 +104,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     // --- twinkling starfield (two depths) drifting slowly ---
     vec2 sp = uv * vec2(aspect, 1.0);
-    vec3 stars  = starLayer(sp + vec2(iTime * 0.004, 0.0), 55.0, 2.4);
-    stars      += starLayer(sp * 1.9 + vec2(-iTime * 0.006, 3.3), 95.0, 3.6) * 0.7;
-    col += stars * 1.5;
+    vec3 stars  = starLayer(sp + vec2(iTime * 0.004, 0.0), 14.0, 2.4);   // ~4x bigger, far fewer
+    stars      += starLayer(sp * 1.9 + vec2(-iTime * 0.006, 3.3), 24.0, 3.6) * 0.7;
+    col += stars * 0.7;   // dimmer / more transparent
 
     // gentle vignette
     vec2 ce = uv - 0.5;
