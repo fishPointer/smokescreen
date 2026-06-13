@@ -61,7 +61,7 @@ float snoise(vec3 v) {
 }
 
 // --- radiant-matter brand palette -----------------------------------------
-const vec3 BLACK   = vec3(0.043, 0.043, 0.043);  // #0b0b0b
+const vec3 BLACK   = vec3(0.0, 0.0, 0.0);        // pure black base
 const vec3 DKBLUE  = vec3(0.082, 0.047, 0.702);  // #150cb3
 const vec3 PURPLE  = vec3(0.255, 0.0,   0.659);  // #4100a8
 const vec3 MAGENTA = vec3(0.859, 0.424, 0.827);  // #db6cd3
