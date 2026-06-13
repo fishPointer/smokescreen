@@ -37,8 +37,8 @@ float fbm(vec2 p) {
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
 
-    // slow field drift; fast effects key off iTime directly (glitter/pulse)
-    float t = iTime * 0.05;
+    // very slow, glacial field drift
+    float t = iTime * 0.035;
     vec2 p = uv;
     p.x *= iResolution.x / iResolution.y;
     p *= 1.4;
@@ -69,8 +69,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     op *= vec2(0.55, 2.1);                            // stretch into streaks
     float vf = fbm(op * 2.2 + 1.4 * r + vec2(0.0, t * 0.4));
     float ridgeBand = 1.0 - abs(2.0 * vf - 1.0);     // bright where vf ~ 0.5
-    float vein = pow(ridgeBand, 9.0);                // sharp taut filaments
-    float halo = pow(ridgeBand, 4.0);                // tighter glow (less dispersion)
+    float vein = pow(ridgeBand, 6.0);                // broad carved grooves
+    float halo = pow(ridgeBand, 2.5);                // broad surrounding mass
 
     // Sparse hosting — baseline density, slightly thinned.  [knob]
     float pocket = smoothstep(0.62, 0.92, fbm(p * 0.7 + vec2(t * 0.05, -t * 0.05)));
@@ -81,35 +81,25 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // the master knob for overall activity.  [knob]
     float hotzone = smoothstep(0.52, 0.80, fbm(p * 0.45 + vec2(t * 0.08, -t * 0.05)));
 
-    // Per-region clock, STRONGLY decorrelated in space so discharges are
-    // isolated local events (no screen-wide synchronized pulse). Slow rate
-    // => infrequent.  [knobs]
+    // Per-region clock, decorrelated in space; SLOW + inertial so each vein
+    // grinds into being and recedes over a long cycle.  [knobs]
     float region = fbm(p * 1.3 + 31.7);
-    float phase  = fract(iTime * 0.24 + region * 8.0);
+    float phase  = fract(iTime * 0.11 + region * 8.0);
 
-    // AR envelope: a SLOW, subtle wind-up (charging) across the whole cycle,
-    // then a brief gentle snap at the crest, then dark.
-    float windup = smoothstep(0.0, 0.95, phase) * 0.10;    // [knob: charge glow]
-    float snap   = pow(smoothstep(0.90, 1.0, phase), 3.0); // [knob: snap window]
-    float arc    = windup + snap;
+    // Smooth swell — arises and fades, eased at both ends (inertial), no snap.
+    // Lower the exponent to dwell longer at the bright crest.  [knob]
+    float swell = pow(sin(phase * 3.14159265), 1.2);
 
-    // acute travelling spike keeps each discharge directional along the streak
-    float bolt = pow(0.5 + 0.5 * sin(vf * 13.0 - iTime * 5.0), 6.0);
+    float life = pocket * hotzone * swell;
 
-    float life = pocket * hotzone * arc;
+    const vec3 EMBER = vec3(1.00, 0.45, 0.08);   // deep amber base
+    const vec3 GOLD  = vec3(1.00, 0.80, 0.34);   // intense gold at the crest
 
-    // Glitter: fast high-frequency sparks riding the filaments.
-    float spark = noise(op * 40.0 + vec2(iTime * 4.0, iTime * 3.0));
-    spark = pow(smoothstep(0.86, 1.0, spark), 2.0);
-    float glitter = spark * vein * pocket * hotzone;
-
-    const vec3 AMBER = vec3(1.00, 0.50, 0.10);
-    const vec3 GOLD  = vec3(1.00, 0.88, 0.58);
-
-    col += halo * life                 * AMBER * 0.30;  // faint charging haze
-    col += vein * life                 * AMBER * 1.10;  // filament cores (subtler)
-    col += vein * pocket * snap * bolt * GOLD  * 0.60;  // gentle crack at the snap
-    col += glitter                     * GOLD  * 1.60;  // sparkle (subtler)
+    // Grinding gold carving the void: a broad glacial body plus an intense
+    // carved core, colour heating toward gold at the peak of the swell.
+    vec3 heat = mix(EMBER, GOLD, swell);
+    col += halo * life * heat * 1.10;   // broad glacial mass
+    col += vein * life * GOLD * 3.20;   // intense carved core
 
     // keep the floor truly dark (crush the lowest values toward black)
     col = pow(col, vec3(1.20));
