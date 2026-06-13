@@ -81,8 +81,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   vec2 uv = suv;
   float aspect = iResolution.x / iResolution.y;
   uv.x *= aspect;
-  // RM used u_time(ms) * 0.00005; Ghostty iTime is seconds => * 0.05 matches.
-  float t = iTime * 0.05;
+  // RM used u_time(ms) * 0.00005 (=> 0.05 in seconds); slowed to 25% for a
+  // calmer drift.
+  float t = iTime * 0.0125;
 
   // Domain warping — two iterations for organic flowing forms
   vec2 q = vec2(
@@ -119,7 +120,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // Terminal text is light; the brightest cyan/pink/green peaks wash it out.
   // Dim the field overall, then apply a luminance ceiling that pulls down ONLY
   // the brightest peaks (hue preserved) while leaving the dark strata intact.
-  col *= 0.40;                                       // overall dim  [knob]
+  col *= 0.48;                                       // overall dim  [knob]
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
   float ceiling = 0.10;                              // brightness cap  [knob]
   col *= ceiling / max(lum, ceiling);                // soft-clip highlights
