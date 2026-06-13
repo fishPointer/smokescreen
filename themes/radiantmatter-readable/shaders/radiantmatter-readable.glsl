@@ -142,7 +142,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   // energy (weighted by the terminal alpha) so the glow hugs the text and not
   // the gradient. Modest.  [knobs]
   const float BLOOM = 0.20;
-  const float BLOOM_RADIUS = 3.0;
+  const float BLOOM_RADIUS = 2.0;
   const int   BLOOM_SAMPLES = 4;
   float bloom = 0.0;
   for (int x = -BLOOM_SAMPLES; x <= BLOOM_SAMPLES; x++) {
