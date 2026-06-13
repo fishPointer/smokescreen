@@ -1,3 +1,4 @@
+const float S_LOOP = 1800.0; // smokescreen: wrap iTime (~30min loop) to avoid float32 precision jitter
 // smokescreen theme: distortion
 // Giratina / Distortion-World vibe: a dark, domain-warped void threaded with
 // glowing molten amber-gold VEINS that are sparse, intense, glittering, and
@@ -38,7 +39,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
 
     // slow field drift; fast effects key off iTime directly (glitter/pulse)
-    float t = iTime * 0.05;
+    float t = mod(iTime, S_LOOP) * 0.05;
     vec2 p = uv;
     p.x *= iResolution.x / iResolution.y;
     p *= 1.4;
@@ -74,12 +75,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     // Fleeting: a traveling pulse + a drifting on/off envelope so veins flare
     // up and die rather than sitting static.
-    float pulse = 0.5 + 0.5 * sin(vf * 9.0 - iTime * 1.3);
-    float onoff = smoothstep(0.32, 0.85, fbm(p * 1.0 + vec2(-iTime * 0.06, iTime * 0.05)));
+    float pulse = 0.5 + 0.5 * sin(vf * 9.0 - mod(iTime, S_LOOP) * 1.3);
+    float onoff = smoothstep(0.32, 0.85, fbm(p * 1.0 + vec2(-mod(iTime, S_LOOP) * 0.06, mod(iTime, S_LOOP) * 0.05)));
     float life  = pocket * pulse * onoff;
 
     // Glitter: fast high-frequency sparks riding the filaments.
-    float spark = noise(p * 36.0 + vec2(iTime * 2.6, iTime * 1.9));
+    float spark = noise(p * 36.0 + vec2(mod(iTime, S_LOOP) * 2.6, mod(iTime, S_LOOP) * 1.9));
     spark = pow(smoothstep(0.84, 1.0, spark), 2.0);
     float glitter = spark * vein * pocket;
 

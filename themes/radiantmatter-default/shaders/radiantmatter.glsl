@@ -1,3 +1,4 @@
+const float S_LOOP = 1800.0; // smokescreen: wrap iTime (~30min loop) to avoid float32 precision jitter
 // smokescreen theme: radiantmatter
 // A faithful port of the radiantmatter.io background gradient (by Noah) to a
 // Ghostty background shader.
@@ -80,7 +81,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float aspect = iResolution.x / iResolution.y;
   uv.x *= aspect;
   // RM used u_time(ms) * 0.00005; Ghostty iTime is seconds => * 0.05 matches.
-  float t = iTime * 0.05;
+  float t = mod(iTime, S_LOOP) * 0.05;
 
   // Domain warping — two iterations for organic flowing forms
   vec2 q = vec2(

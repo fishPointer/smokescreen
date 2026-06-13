@@ -1,3 +1,4 @@
+const float S_LOOP = 1800.0; // smokescreen: wrap iTime (~30min loop) to avoid float32 precision jitter
 // Animated pastel "color cloud" background for Ghostty.
 // A domain-warped FBM mesh-gradient (Stripe-banner vibe, dark-mode palette)
 // painted BEHIND the terminal text. The terminal arrives as iChannel0; its
@@ -37,7 +38,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
 
     // slow, evolving time + aspect-corrected sample space
-    float t = iTime * 0.04;
+    float t = mod(iTime, S_LOOP) * 0.04;
     vec2 p = uv;
     p.x *= iResolution.x / iResolution.y;
     p *= 1.4;

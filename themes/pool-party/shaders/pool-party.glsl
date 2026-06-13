@@ -1,3 +1,4 @@
+const float S_LOOP = 1800.0; // smokescreen: wrap iTime (~30min loop) to avoid float32 precision jitter
 // smokescreen theme: pool-party
 // Vaporwave / cosmic-bowling-carpet under a blacklight: a STELLAR dark base
 // (deep celestial violet/indigo/teal, not chthonic) lit ambiently by a confetti
@@ -47,7 +48,7 @@ vec3 starLayer(vec2 sp, float density, float twinkleRate, float thr) {
     float core = smoothstep(0.06, 0.0, d);          // tight point
     float halo = smoothstep(0.34, 0.0, d) * 0.22;   // soft UV bloom
     float present = step(thr, h);                    // rarity per layer  [knob]
-    float twk = 0.30 + 0.70 * pow(0.5 + 0.5 * sin(iTime * twinkleRate + h * 6.2831), 2.0);
+    float twk = 0.30 + 0.70 * pow(0.5 + 0.5 * sin(mod(iTime, S_LOOP) * twinkleRate + h * 6.2831), 2.0);
     // neon colour per cell: cyan / magenta / violet
     float hc = hash(id + 4.2);
     vec3 cstar = mix(vec3(0.35, 1.00, 1.00), vec3(1.00, 0.35, 0.90), step(0.45, hc));
@@ -59,8 +60,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     float aspect = iResolution.x / iResolution.y;
 
-    float t  = iTime * 0.04;   // slow drift
-    float st = iTime * 0.06;   // caustic shimmer speed (much slower)  [knob]
+    float t  = mod(iTime, S_LOOP) * 0.04;   // slow drift
+    float st = mod(iTime, S_LOOP) * 0.06;   // caustic shimmer speed (much slower)  [knob]
     vec2 p = uv;
     p.x *= aspect;
     p *= 1.4;
@@ -104,8 +105,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     // --- twinkling starfield (two depths) drifting slowly ---
     vec2 sp = uv * vec2(aspect, 1.0);
-    vec3 stars  = starLayer(sp + vec2(iTime * 0.004, 0.0), 14.0, 2.4, 0.72);          // big, sparse
-    stars      += starLayer(sp * 1.9 + vec2(-iTime * 0.006, 3.3), 24.0, 3.6, 0.95) * 0.7; // small layer: far fewer  [knob]
+    vec3 stars  = starLayer(sp + vec2(mod(iTime, S_LOOP) * 0.004, 0.0), 14.0, 2.4, 0.72);          // big, sparse
+    stars      += starLayer(sp * 1.9 + vec2(-mod(iTime, S_LOOP) * 0.006, 3.3), 24.0, 3.6, 0.95) * 0.7; // small layer: far fewer  [knob]
     col += stars * 0.7;   // dimmer / more transparent
 
     col *= 0.81;   // everything ~10% more transparent again (global)
