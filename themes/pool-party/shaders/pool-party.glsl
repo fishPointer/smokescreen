@@ -72,14 +72,19 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                   fbm(p + 3.0 * q + vec2(8.3, 2.8) - t * 0.5));
     float f = fbm(p + 3.0 * r);
 
-    // --- stellar dark base: deep celestial violet / indigo / teal ---
-    vec3 n1 = vec3(0.030, 0.018, 0.075);  // near-black indigo
-    vec3 n2 = vec3(0.090, 0.030, 0.150);  // deep violet
-    vec3 n3 = vec3(0.020, 0.070, 0.120);  // dark teal
-    vec3 col = mix(n1, n2, smoothstep(0.20, 0.80, f));
-    col = mix(col, n3, smoothstep(0.30, 0.92, r.x));
-    // faint UV ambient so the dark itself glows a little
-    col += vec3(0.020, 0.004, 0.035);
+    // --- nighttime: a BLACK void with TRANSLUCENT celestial colour clouds ---
+    // density -> opacity (as in radiantmatter-readable): black dominates and the
+    // nebula only thickens into view where the warped field is dense.
+    vec3 nv = vec3(0.16, 0.05, 0.30);   // deep violet
+    vec3 nt = vec3(0.04, 0.16, 0.24);   // deep teal
+    vec3 nm = vec3(0.24, 0.06, 0.20);   // deep magenta
+    vec3 cloud = mix(nv, nt, smoothstep(0.30, 0.92, r.x));
+    cloud = mix(cloud, nm, smoothstep(0.30, 0.85, q.y));
+
+    float dens = smoothstep(0.30, 0.80, f);          // nebula coverage from the field
+    const float NEB_GAMMA   = 1.8;   // higher => more of the field falls to black   [knob]
+    const float NEB_OPACITY = 0.55;  // densest nebula is still translucent           [knob]
+    vec3 col = mix(vec3(0.0), cloud, pow(dens, NEB_GAMMA) * NEB_OPACITY);
 
     // --- UV-neon squiggle caustics: two crossing animated isolines ---
     vec2 op1 = mat2(1.0, 0.0,  0.7, 1.0) * p; op1 *= vec2(0.6, 1.8);
