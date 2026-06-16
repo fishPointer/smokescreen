@@ -109,7 +109,16 @@ const vec3 CYAN    = vec3(0.300, 0.620, 0.780);  // brighter psychic sheen
 const vec3 GOLD    = vec3(0.950, 0.780, 0.340);  // Jirachi gold / economic
 const vec3 WHITEH  = vec3(1.000, 0.960, 0.870);  // white-hot comet head
 
+// --- freeze toggle (smokescreen) -------------------------------------------
+// FREEZE_FRAME >= 0.0 pins the shader clock to that single frame -- a static
+// render. Pair it with `custom-shader-animation = false` so Ghostty also stops
+// its continuous redraw loop. A negative value keeps the shader live/animated.
+// (crt-bloom.glsl has no iTime, so it needs no toggle.)  See README -> Freezing.
+const float FREEZE_FRAME = -1.0;
+float sceneTime() { return FREEZE_FRAME >= 0.0 ? FREEZE_FRAME : iTime; }
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    float iTime = sceneTime();  // freeze toggle: shadows the live iTime uniform
   vec2 suv = fragCoord / iResolution.xy;   // for sampling the terminal texture
   float aspect = iResolution.x / iResolution.y;
   const float SPEED = 1.0;                  // overall time scale  [knob]

@@ -109,7 +109,16 @@ const vec3 EMERALD = vec3(0.055, 0.420, 0.235);  // serpent body
 const vec3 JADE    = vec3(0.230, 0.720, 0.460);  // sheen on the crest
 const vec3 GOLD    = vec3(0.850, 0.660, 0.260);  // ring markings catching light
 
+// --- freeze toggle (smokescreen) -------------------------------------------
+// FREEZE_FRAME >= 0.0 pins the shader clock to that single frame -- a static
+// render. Pair it with `custom-shader-animation = false` so Ghostty also stops
+// its continuous redraw loop. A negative value keeps the shader live/animated.
+// (crt-bloom.glsl has no iTime, so it needs no toggle.)  See README -> Freezing.
+const float FREEZE_FRAME = -1.0;
+float sceneTime() { return FREEZE_FRAME >= 0.0 ? FREEZE_FRAME : iTime; }
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    float iTime = sceneTime();  // freeze toggle: shadows the live iTime uniform
   vec2 suv = fragCoord / iResolution.xy;   // for sampling the terminal texture
   float aspect = iResolution.x / iResolution.y;
   const float SPEED = 2.0;                  // DEBUG overclock (200%) — set back to 1.0

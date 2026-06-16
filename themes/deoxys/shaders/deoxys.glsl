@@ -134,7 +134,16 @@ const vec3 DXT    = vec3(0.100, 0.620, 0.600);  // deoxys teal (accents / fresne
 const vec3 DXV    = vec3(0.420, 0.160, 0.540);  // deoxys violet (crystal in shadow)
 const vec3 DXG    = vec3(0.430, 0.460, 0.520);  // deoxys cool gray (extremities / base)
 
+// --- freeze toggle (smokescreen) -------------------------------------------
+// FREEZE_FRAME >= 0.0 pins the shader clock to that single frame -- a static
+// render. Pair it with `custom-shader-animation = false` so Ghostty also stops
+// its continuous redraw loop. A negative value keeps the shader live/animated.
+// (crt-bloom.glsl has no iTime, so it needs no toggle.)  See README -> Freezing.
+const float FREEZE_FRAME = -1.0;
+float sceneTime() { return FREEZE_FRAME >= 0.0 ? FREEZE_FRAME : iTime; }
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    float iTime = sceneTime();  // freeze toggle: shadows the live iTime uniform
   vec2 suv = fragCoord / iResolution.xy;
   float aspect = iResolution.x / iResolution.y;
   const float SPEED = 1.0;                  // overall time scale  [knob]

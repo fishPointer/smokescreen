@@ -121,7 +121,16 @@ const vec3 EMBER   = vec3(0.950, 0.350, 0.070);  // magma orange
 const vec3 YELLOW  = vec3(1.000, 0.720, 0.180);  // hot magma yellow
 const vec3 WHITEH  = vec3(1.000, 0.930, 0.760);  // white-hot seam core
 
+// --- freeze toggle (smokescreen) -------------------------------------------
+// FREEZE_FRAME >= 0.0 pins the shader clock to that single frame -- a static
+// render. Pair it with `custom-shader-animation = false` so Ghostty also stops
+// its continuous redraw loop. A negative value keeps the shader live/animated.
+// (crt-bloom.glsl has no iTime, so it needs no toggle.)  See README -> Freezing.
+const float FREEZE_FRAME = -1.0;
+float sceneTime() { return FREEZE_FRAME >= 0.0 ? FREEZE_FRAME : iTime; }
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    float iTime = sceneTime();  // freeze toggle: shadows the live iTime uniform
   vec2 suv = fragCoord / iResolution.xy;
   float aspect = iResolution.x / iResolution.y;
   const float SPEED = 1.0;                  // overall time scale  [knob]

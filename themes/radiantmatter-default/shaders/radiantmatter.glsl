@@ -75,7 +75,16 @@ float fbm(vec3 p) {
   return snoise(p) * 0.667 + snoise(p * 2.0) * 0.333;
 }
 
+// --- freeze toggle (smokescreen) -------------------------------------------
+// FREEZE_FRAME >= 0.0 pins the shader clock to that single frame -- a static
+// render. Pair it with `custom-shader-animation = false` so Ghostty also stops
+// its continuous redraw loop. A negative value keeps the shader live/animated.
+// (crt-bloom.glsl has no iTime, so it needs no toggle.)  See README -> Freezing.
+const float FREEZE_FRAME = -1.0;
+float sceneTime() { return FREEZE_FRAME >= 0.0 ? FREEZE_FRAME : iTime; }
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    float iTime = sceneTime();  // freeze toggle: shadows the live iTime uniform
   vec2 suv = fragCoord / iResolution.xy;   // for sampling the terminal texture
   vec2 uv = suv;
   float aspect = iResolution.x / iResolution.y;

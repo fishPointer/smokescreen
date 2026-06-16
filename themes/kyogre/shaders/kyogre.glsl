@@ -89,7 +89,16 @@ const vec3 DEEP  = vec3(0.010, 0.045, 0.120);  // deep ocean blue
 const vec3 TEAL  = vec3(0.025, 0.140, 0.220);  // sunlit teal (near surface)
 const vec3 CYAN  = vec3(0.300, 0.600, 0.860);  // caustic / light highlight
 
+// --- freeze toggle (smokescreen) -------------------------------------------
+// FREEZE_FRAME >= 0.0 pins the shader clock to that single frame -- a static
+// render. Pair it with `custom-shader-animation = false` so Ghostty also stops
+// its continuous redraw loop. A negative value keeps the shader live/animated.
+// (crt-bloom.glsl has no iTime, so it needs no toggle.)  See README -> Freezing.
+const float FREEZE_FRAME = -1.0;
+float sceneTime() { return FREEZE_FRAME >= 0.0 ? FREEZE_FRAME : iTime; }
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    float iTime = sceneTime();  // freeze toggle: shadows the live iTime uniform
   vec2 suv = fragCoord / iResolution.xy;
   float aspect = iResolution.x / iResolution.y;
   const float SPEED = 1.0;                  // overall time scale  [knob]

@@ -148,6 +148,44 @@ fragColor = vec4(rgb, a);
 Multiple `custom-shader` lines chain in order — later shaders post-process the
 output of earlier ones (that's how `default` layers CRT over the cloud).
 
+## Freezing (static render)
+
+Every animated theme shader carries a **freeze toggle** near its `mainImage`:
+
+```glsl
+const float FREEZE_FRAME = -1.0;
+float sceneTime() { return FREEZE_FRAME >= 0.0 ? FREEZE_FRAME : iTime; }
+```
+
+`mainImage` shadows the live `iTime` uniform with `float iTime = sceneTime();`,
+so the whole shader reads its clock through the toggle without any other change:
+
+- **`FREEZE_FRAME = -1.0`** (default) — live `iTime`, animated as before.
+- **`FREEZE_FRAME = 200.0`** (any value `>= 0`) — the clock is pinned to that one
+  frame and the field stops moving. The number *is* the frame: change it to land
+  on a different still.
+
+Freezing the image is only half of it — pair it with Ghostty's animation flag to
+stop the work:
+
+```ini
+custom-shader-animation = false
+```
+
+With `false`, Ghostty stops its continuous redraw loop (the part that actually
+burns the GPU) and only re-runs the shader when the terminal contents change.
+On its own, `false` doesn't fully freeze the picture — Ghostty still feeds
+wall-clock time into `iTime` on each incidental redraw — so for a truly fixed
+still you want **both**: `FREEZE_FRAME >= 0` (pins the frame) *and*
+`custom-shader-animation = false` (stops the loop). `crt-bloom.glsl` uses no
+`iTime`, so it's static either way and carries no toggle.
+
+> **Freezing edits the file.** If you symlink the live shader at the repo copy
+> (see *Development* below), flipping `FREEZE_FRAME` there freezes the repo's
+> canonical copy too. To freeze just one terminal, copy the shader into
+> `~/.config/ghostty/shaders/` and flip the constant on the copy, leaving the
+> repo default live.
+
 ## Examples
 
 [`examples/ghostty.conf`](examples/ghostty.conf) is a full working Ghostty
